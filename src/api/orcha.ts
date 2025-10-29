@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import type { RouteRequest, RouteResponse, ChatRequest, ChatResponse } from '../types/orcha';
+import type { RouteRequest, RouteResponse, ChatRequest, ChatResponse, OCRExtractRequest, OCRExtractResponse, Conversation, ChatMessage, CreateConversationRequest, UpdateConversationRequest, PulseResponse } from '../types/orcha';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -32,6 +32,17 @@ export const chat = async (payload: ChatRequest): Promise<ChatResponse> => {
     console.log('📝 Status:', response.data.status);
     console.log('💬 Message:', response.data.message);
     console.log('📚 Contexts:', response.data.contexts);
+    console.log('🪙 Token Usage:', response.data.token_usage);
+    
+    if (response.data.token_usage) {
+      console.log('✅ Token usage IS in response:', {
+        current: response.data.token_usage.current_usage,
+        added: response.data.token_usage.tokens_added,
+        enabled: response.data.token_usage.tracking_enabled
+      });
+    } else {
+      console.error('❌ Token usage NOT in response! Backend may not be sending it.');
+    }
 
     return response.data;
   } catch (error) {
@@ -100,6 +111,31 @@ export const route = async (payload: RouteRequest): Promise<RouteResponse> => {
  */
 
 /**
+ * Get current token usage for a user
+ * 
+ * @param userId - The user ID to check token usage for
+ * @returns Promise with the token usage information
+ * @throws AxiosError if the request fails
+ */
+export const getTokenUsage = async (userId: string): Promise<any> => {
+  try {
+    const response = await api.get(`/tokens/usage/${userId}`);
+    console.log('🪙 Token usage fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Token usage fetch error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
  * TODO: Implement function to call the recommended endpoint
  * This function would take the routing response and make an actual call to the
  * recommended endpoint using the prepared payload.
@@ -121,6 +157,272 @@ export const route = async (payload: RouteRequest): Promise<RouteResponse> => {
  *   return response.data;
  * };
  */
+
+/**
+ * Extract text from image using OCR service
+ * 
+ * @param payload - The OCR extraction request payload
+ * @returns Promise with the OCR extraction response including extracted text
+ * @throws AxiosError if the request fails
+ */
+export const extractOCRText = async (payload: OCRExtractRequest): Promise<OCRExtractResponse> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.post<OCRExtractResponse>('/orcha/ocr/extract', payload, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 OCR Extraction Response:', response.data);
+    console.log('📝 Status:', response.data.status);
+    console.log('📄 Extracted Text:', response.data.extracted_text);
+    console.log('📊 Lines Count:', response.data.lines_count);
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('OCR extraction error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Create a new conversation
+ * 
+ * @param payload - The conversation creation request payload
+ * @returns Promise with the created conversation
+ * @throws AxiosError if the request fails
+ */
+export const createConversation = async (payload: CreateConversationRequest): Promise<Conversation> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.post<Conversation>('/conversations', payload, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Create Conversation Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Create conversation error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Get user's conversations
+ * 
+ * @param userId - The user ID to fetch conversations for
+ * @param limit - Maximum number of conversations to return (default: 50)
+ * @param offset - Number of conversations to skip (default: 0)
+ * @returns Promise with array of conversations
+ * @throws AxiosError if the request fails
+ */
+export const getUserConversations = async (userId: number, limit: number = 50, offset: number = 0): Promise<Conversation[]> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.get<Conversation[]>(`/conversations/${userId}?limit=${limit}&offset=${offset}`, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Get Conversations Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Get conversations error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Get conversation details with messages
+ * 
+ * @param userId - The user ID
+ * @param conversationId - The conversation ID to fetch
+ * @returns Promise with conversation details including messages
+ * @throws AxiosError if the request fails
+ */
+export const getConversationDetails = async (userId: number, conversationId: number): Promise<Conversation> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.get<Conversation>(`/conversations/${userId}/${conversationId}`, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Get Conversation Details Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Get conversation details error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Update conversation title
+ * 
+ * @param userId - The user ID
+ * @param conversationId - The conversation ID to update
+ * @param payload - The update request payload
+ * @returns Promise with updated conversation
+ * @throws AxiosError if the request fails
+ */
+export const updateConversation = async (userId: number, conversationId: number, payload: UpdateConversationRequest): Promise<Conversation> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.put<Conversation>(`/conversations/${userId}/${conversationId}`, payload, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Update Conversation Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Update conversation error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Delete conversation (soft delete)
+ * 
+ * @param userId - The user ID
+ * @param conversationId - The conversation ID to delete
+ * @returns Promise with deletion status
+ * @throws AxiosError if the request fails
+ */
+export const deleteConversation = async (userId: number, conversationId: number): Promise<{ status: string; message: string }> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.delete<{ status: string; message: string }>(`/conversations/${userId}/${conversationId}`, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Delete Conversation Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Delete conversation error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Get user's pulse (daily AI-generated conversation summary)
+ * 
+ * @param userId - The user ID to fetch pulse for
+ * @returns Promise with the pulse data
+ * @throws AxiosError if the request fails
+ */
+export const getPulse = async (userId: number): Promise<PulseResponse> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.get<PulseResponse>(`/pulse/${userId}`, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Get Pulse Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Get pulse error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Regenerate user's pulse
+ * 
+ * @param userId - The user ID to regenerate pulse for
+ * @returns Promise with the regenerated pulse data
+ * @throws AxiosError if the request fails
+ */
+export const regeneratePulse = async (userId: number): Promise<PulseResponse> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.post<PulseResponse>(`/pulse/${userId}/regenerate`, {}, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Regenerate Pulse Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Regenerate pulse error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
 
 export default api;
 

@@ -1,180 +1,220 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import type { Message } from '../types/orcha';
-
-export interface Conversation {
-  id: string;
-  title: string;
-  messages: Message[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+// @refresh reset
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+import { useAuth } from './AuthContext';
+import { 
+  createConversation, 
+  getUserConversations, 
+  getConversationDetails, 
+  updateConversation, 
+  deleteConversation as deleteConversationAPI 
+} from '../api/orcha';
+import type { Conversation, ChatMessage, CreateConversationRequest, UpdateConversationRequest } from '../types/orcha';
 
 interface ConversationContextType {
   conversations: Conversation[];
-  currentConversationId: string | null;
+  currentConversationId: number | null;
   currentConversation: Conversation | null;
-  createNewConversation: () => void;
-  switchConversation: (id: string) => void;
-  deleteConversation: (id: string) => void;
-  addMessage: (message: Message) => void;
-  updateConversationTitle: (id: string, title: string) => void;
+  messages: ChatMessage[];
+  loading: boolean;
+  error: string | null;
+  createNewConversation: () => Promise<void>;
+  switchConversation: (id: number) => Promise<void>;
+  deleteConversation: (id: number) => Promise<void>;
+  updateConversationTitle: (id: number, title: string) => Promise<void>;
+  refreshConversations: () => Promise<void>;
+  refreshMessages: () => Promise<void>;
   clearCurrentConversation: () => void;
 }
 
 const ConversationContext = createContext<ConversationContextType | undefined>(undefined);
-
-const CONVERSATIONS_STORAGE_KEY = 'aura_conversations';
-const CURRENT_CONVERSATION_KEY = 'aura_current_conversation';
 
 interface ConversationProviderProps {
   children: ReactNode;
 }
 
 export const ConversationProvider: React.FC<ConversationProviderProps> = ({ children }) => {
+  const { user, loading: authLoading } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const previousConversationIdRef = useRef<number | null>(null);
 
-  // Load conversations from localStorage on mount
-  useEffect(() => {
-    const storedConversations = localStorage.getItem(CONVERSATIONS_STORAGE_KEY);
-    const storedCurrentId = localStorage.getItem(CURRENT_CONVERSATION_KEY);
-
-    if (storedConversations) {
-      try {
-        const parsed = JSON.parse(storedConversations);
-        // Convert date strings back to Date objects
-        const conversationsWithDates = parsed.map((conv: any) => ({
-          ...conv,
-          createdAt: new Date(conv.createdAt),
-          updatedAt: new Date(conv.updatedAt),
-          messages: conv.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-          })),
-        }));
-        setConversations(conversationsWithDates);
-        
-        // Set current conversation or create new one
-        if (storedCurrentId && conversationsWithDates.find((c: Conversation) => c.id === storedCurrentId)) {
-          setCurrentConversationId(storedCurrentId);
-        } else if (conversationsWithDates.length > 0) {
-          setCurrentConversationId(conversationsWithDates[0].id);
-        } else {
-          // Create first conversation
-          const firstConv = createConversation();
-          setConversations([firstConv]);
-          setCurrentConversationId(firstConv.id);
+  const refreshConversations = useCallback(async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('🔄 Fetching conversations for user:', user.id);
+      const fetchedConversations = await getUserConversations(user.id);
+      console.log('✅ Conversations fetched:', fetchedConversations);
+      
+      // Store the current conversation ID before updating
+      const previousConversationId = currentConversationId;
+      
+      setConversations(fetchedConversations);
+      
+      // Only auto-select first conversation if there's no current conversation
+      // This prevents switching away from the current conversation after sending a message
+      if (!previousConversationId && fetchedConversations.length > 0) {
+        console.log('📌 No current conversation, selecting first one:', fetchedConversations[0].id);
+        setCurrentConversationId(fetchedConversations[0].id);
+      } else if (previousConversationId) {
+        console.log('📌 Keeping current conversation:', previousConversationId);
+        // Verify the current conversation still exists in the fetched list
+        const conversationExists = fetchedConversations.some(c => c.id === previousConversationId);
+        if (!conversationExists && fetchedConversations.length > 0) {
+          console.log('⚠️ Current conversation no longer exists, selecting first one');
+          setCurrentConversationId(fetchedConversations[0].id);
         }
-      } catch (error) {
-        console.error('Failed to parse stored conversations:', error);
-        // Create new conversation on error
-        const firstConv = createConversation();
-        setConversations([firstConv]);
-        setCurrentConversationId(firstConv.id);
+      }
+    } catch (err) {
+      console.error('❌ Failed to refresh conversations:', err);
+      // Don't set error for now, just log it - this might be expected if backend is not running
+      console.log('⚠️ Backend might not be running, continuing with empty conversations');
+      setConversations([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, currentConversationId]);
+
+  const loadConversationMessages = useCallback(async () => {
+    if (!user || !currentConversationId) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const conversationDetails = await getConversationDetails(user.id, currentConversationId);
+      setMessages(conversationDetails.messages || []);
+    } catch (err) {
+      console.error('❌ Failed to load conversation messages:', err);
+      // Don't set error for now, just log it - this might be expected if backend is not running
+      console.log('⚠️ Backend might not be running, continuing with empty messages');
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, currentConversationId]);
+
+  // Load conversations when user changes
+  useEffect(() => {
+    if (authLoading) return; // Wait for auth to finish loading
+    
+    if (user) {
+      refreshConversations();
+    } else {
+      // Clear state when user logs out
+      setConversations([]);
+      setCurrentConversationId(null);
+      setMessages([]);
+    }
+  }, [user, authLoading, refreshConversations]);
+
+  // Load messages when conversation changes
+  useEffect(() => {
+    if (authLoading) return; // Wait for auth to finish loading
+    
+    // Only reload messages if the conversation ID actually changed
+    if (user && currentConversationId) {
+      if (previousConversationIdRef.current !== currentConversationId) {
+        console.log('🔄 Conversation changed, loading messages:', currentConversationId);
+        previousConversationIdRef.current = currentConversationId;
+        loadConversationMessages();
+      } else {
+        console.log('📌 Same conversation, skipping message reload');
       }
     } else {
-      // No stored conversations, create first one
-      const firstConv = createConversation();
-      setConversations([firstConv]);
-      setCurrentConversationId(firstConv.id);
+      previousConversationIdRef.current = null;
+      setMessages([]);
     }
+  }, [user, currentConversationId, authLoading, loadConversationMessages]);
+
+  const createNewConversation = useCallback(async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const payload: CreateConversationRequest = {
+        user_id: user.id,
+        title: 'New Chat',
+        tenant_id: undefined // You can add tenant_id if needed
+      };
+      
+      const newConversation = await createConversation(payload);
+      setConversations(prev => [newConversation, ...prev]);
+      setCurrentConversationId(newConversation.id);
+      setMessages([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create conversation');
+      console.error('Failed to create conversation:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const switchConversation = useCallback(async (id: number) => {
+    setCurrentConversationId(id);
   }, []);
 
-  // Save conversations to localStorage whenever they change
-  useEffect(() => {
-    if (conversations.length > 0) {
-      localStorage.setItem(CONVERSATIONS_STORAGE_KEY, JSON.stringify(conversations));
-    }
-  }, [conversations]);
-
-  // Save current conversation ID
-  useEffect(() => {
-    if (currentConversationId) {
-      localStorage.setItem(CURRENT_CONVERSATION_KEY, currentConversationId);
-    }
-  }, [currentConversationId]);
-
-  const createConversation = (): Conversation => {
-    return {
-      id: uuidv4(),
-      title: 'New Chat',
-      messages: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-  };
-
-  const createNewConversation = () => {
-    const newConv = createConversation();
-    setConversations((prev) => [newConv, ...prev]);
-    setCurrentConversationId(newConv.id);
-  };
-
-  const switchConversation = (id: string) => {
-    setCurrentConversationId(id);
-  };
-
-  const deleteConversation = (id: string) => {
-    setConversations((prev) => {
-      const filtered = prev.filter((c) => c.id !== id);
+  const deleteConversation = useCallback(async (id: number) => {
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteConversationAPI(user.id, id);
+      setConversations(prev => prev.filter(c => c.id !== id));
       
       // If deleting current conversation, switch to another or create new
       if (id === currentConversationId) {
-        if (filtered.length > 0) {
-          setCurrentConversationId(filtered[0].id);
+        const remainingConversations = conversations.filter(c => c.id !== id);
+        if (remainingConversations.length > 0) {
+          setCurrentConversationId(remainingConversations[0].id);
         } else {
-          const newConv = createConversation();
-          setCurrentConversationId(newConv.id);
-          return [newConv];
+          await createNewConversation();
         }
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete conversation');
+      console.error('Failed to delete conversation:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, currentConversationId, conversations, createNewConversation]);
+
+  const updateConversationTitle = useCallback(async (id: number, title: string) => {
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const payload: UpdateConversationRequest = { title };
+      const updatedConversation = await updateConversation(user.id, id, payload);
       
-      return filtered.length > 0 ? filtered : [createConversation()];
-    });
-  };
+      setConversations(prev => 
+        prev.map(conv => conv.id === id ? updatedConversation : conv)
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update conversation title');
+      console.error('Failed to update conversation title:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
-  const addMessage = (message: Message) => {
-    setConversations((prev) =>
-      prev.map((conv) => {
-        if (conv.id === currentConversationId) {
-          const updatedMessages = [...conv.messages, message];
-          
-          // Auto-generate title from first user message
-          let title = conv.title;
-          if (conv.title === 'New Chat' && message.type === 'user' && message.content) {
-            title = message.content.slice(0, 30) + (message.content.length > 30 ? '...' : '');
-          }
-          
-          return {
-            ...conv,
-            messages: updatedMessages,
-            title,
-            updatedAt: new Date(),
-          };
-        }
-        return conv;
-      })
-    );
-  };
+  const clearCurrentConversation = useCallback(() => {
+    setMessages([]);
+  }, []);
 
-  const updateConversationTitle = (id: string, title: string) => {
-    setConversations((prev) =>
-      prev.map((conv) => (conv.id === id ? { ...conv, title } : conv))
-    );
-  };
+  const refreshMessages = useCallback(async () => {
+    console.log('🔄 Manually refreshing messages for current conversation');
+    await loadConversationMessages();
+  }, [loadConversationMessages]);
 
-  const clearCurrentConversation = () => {
-    setConversations((prev) =>
-      prev.map((conv) =>
-        conv.id === currentConversationId
-          ? { ...conv, messages: [], updatedAt: new Date() }
-          : conv
-      )
-    );
-  };
-
-  const currentConversation = conversations.find((c) => c.id === currentConversationId) || null;
+  const currentConversation = conversations.find(c => c.id === currentConversationId) || null;
 
   return (
     <ConversationContext.Provider
@@ -182,11 +222,15 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
         conversations,
         currentConversationId,
         currentConversation,
+        messages,
+        loading,
+        error,
         createNewConversation,
         switchConversation,
         deleteConversation,
-        addMessage,
         updateConversationTitle,
+        refreshConversations,
+        refreshMessages,
         clearCurrentConversation,
       }}
     >
@@ -202,4 +246,5 @@ export const useConversation = (): ConversationContextType => {
   }
   return context;
 };
+
 

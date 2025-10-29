@@ -1,6 +1,7 @@
+// @refresh reset
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type ModelType = 'chat' | 'doc' | 'vision';
+export type ModelType = 'chat' | 'doc' | 'vision' | 'ocr';
 
 interface ModelContextType {
   currentModel: ModelType;
@@ -21,7 +22,7 @@ export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
   // Load model from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(MODEL_STORAGE_KEY);
-    if (stored && (stored === 'chat' || stored === 'doc' || stored === 'vision')) {
+    if (stored && (stored === 'chat' || stored === 'doc' || stored === 'vision' || stored === 'ocr')) {
       setCurrentModel(stored as ModelType);
     }
   }, []);
@@ -49,4 +50,5 @@ export const useModel = (): ModelContextType => {
   }
   return context;
 };
+
 

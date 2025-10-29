@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { Message } from '../types/orcha';
+import type { ChatMessage } from '../types/orcha';
 import { useLanguage } from '../context/LanguageContext';
-import { translations } from '../translations';
-import AttachmentChip from './AttachmentChip';
 
 interface MessageBubbleProps {
-  message: Message;
+  message: ChatMessage;
+  onRegenerate?: () => void;
 }
 
 // Function to parse markdown bold (**text**) and render as bold
@@ -190,12 +189,31 @@ const parseMarkdown = (text: string) => {
   return withItalics;
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
-  const isUser = message.type === 'user';
-  const isError = message.type === 'error';
-  const isAssistant = message.type === 'assistant';
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) => {
+  const isUser = message.role === 'user';
+  const isError = message.role === 'system'; // Treat system messages as errors for now
+  const isAssistant = message.role === 'assistant';
   const { language } = useLanguage();
-  const t = translations[language].assistant;
+  const [copied, setCopied] = useState(false);
+  const [liked, setLiked] = useState<boolean | null>(null);
+
+  // Copy message content to clipboard
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  };
+
+  // Handle regenerate (reload)
+  const handleRegenerate = () => {
+    if (onRegenerate) {
+      onRegenerate();
+    }
+  };
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -301,45 +319,73 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               {parseMarkdown(message.content)}
             </p>
           )}
-          
-          {message.attachments && message.attachments.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {message.attachments.map((attachment, index) => (
-                <AttachmentChip 
-                  key={index} 
-                  attachment={attachment} 
-                  readonly 
-                />
-              ))}
-            </div>
-          )}
-          
-          {/* Display sources/contexts if present (RAG) */}
-          {isAssistant && message.contexts && message.contexts.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-300">
-              <p className="text-xs font-semibold mb-2">{t.sources}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {message.contexts.map((ctx, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-100 text-indigo-800 text-xs"
-                    title={ctx.text || ctx.chunk || ctx.content}
-                  >
-                    {ctx.source || ctx.doc_id || `Source ${index + 1}`}
-                    {ctx.score && (
-                      <span className="ml-1 text-indigo-600 font-medium">
-                        {(ctx.score * 100).toFixed(0)}%
-                      </span>
-                    )}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Action buttons for assistant messages */}
+        {isAssistant && (
+          <div className="flex items-center gap-1 mt-2">
+            {/* Regenerate/Reload button */}
+            <button
+              onClick={handleRegenerate}
+              className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+              title={language === 'en' ? 'Regenerate response' : 'Régénérer la réponse'}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+
+            {/* Copy button */}
+            <button
+              onClick={handleCopy}
+              className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded transition"
+              title={copied ? (language === 'en' ? 'Copied!' : 'Copié!') : (language === 'en' ? 'Copy message' : 'Copier le message')}
+            >
+              {copied ? (
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
+            </button>
+
+            {/* Like button */}
+            <button
+              onClick={() => setLiked(liked === true ? null : true)}
+              className={`p-1.5 rounded transition ${
+                liked === true 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+              title={language === 'en' ? 'Like' : 'J\'aime'}
+            >
+              <svg className="w-4 h-4" fill={liked === true ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+              </svg>
+            </button>
+
+            {/* Dislike button */}
+            <button
+              onClick={() => setLiked(liked === false ? null : false)}
+              className={`p-1.5 rounded transition ${
+                liked === false 
+                  ? 'text-red-600 bg-red-50' 
+                  : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+              }`}
+              title={language === 'en' ? 'Dislike' : 'Je n\'aime pas'}
+            >
+              <svg className="w-4 h-4" fill={liked === false ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+              </svg>
+            </button>
+          </div>
+        )}
         
         <span className="text-xs text-gray-500 mt-1 px-1">
-          {message.timestamp.toLocaleTimeString([], { 
+          {new Date(message.created_at).toLocaleTimeString([], { 
             hour: '2-digit', 
             minute: '2-digit' 
           })}

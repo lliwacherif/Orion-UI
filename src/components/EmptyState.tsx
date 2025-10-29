@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 import { useModel } from '../context/ModelContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useSession } from '../context/SessionContext';
+import { useAuth } from '../context/AuthContext';
 import { useConversation } from '../context/ConversationContext';
 
 const EmptyState: React.FC = () => {
   const { setModel } = useModel();
   const { language } = useLanguage();
-  const { session } = useSession();
+  const { user } = useAuth();
   const { currentConversation } = useConversation();
 
   // 8 different greeting templates
@@ -37,13 +37,14 @@ const EmptyState: React.FC = () => {
   // Select greeting based on conversation ID to ensure consistency within a conversation
   const greeting = useMemo(() => {
     const templates = greetings[language];
-    const conversationId = currentConversation?.id || '';
+    const conversationId = currentConversation?.id?.toString() || '0';
     // Use conversation ID to deterministically select a greeting
     const hash = conversationId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const index = hash % templates.length;
-    const userName = session?.user_id || (language === 'en' ? 'there' : 'toi');
+    // Use full_name if available, otherwise username, otherwise fallback
+    const userName = user?.full_name || user?.username || (language === 'en' ? 'there' : 'toi');
     return templates[index](userName);
-  }, [language, currentConversation?.id, session?.user_id]);
+  }, [language, currentConversation?.id, user?.full_name, user?.username]);
 
   const models = [
     {

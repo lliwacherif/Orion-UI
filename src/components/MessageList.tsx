@@ -1,18 +1,22 @@
 import React, { useEffect, useRef } from 'react';
-import type { Message } from '../types/orcha';
+import type { ChatMessage } from '../types/orcha';
 import { useModel } from '../context/ModelContext';
+import { useLanguage } from '../context/LanguageContext';
+import { translations } from '../translations';
 import MessageBubble from './MessageBubble';
-import RoutingMessage from './RoutingMessage';
 import EmptyState from './EmptyState';
 
 interface MessageListProps {
-  messages: Message[];
+  messages: ChatMessage[];
   isLoading?: boolean;
+  onRegenerateMessage?: (messageIndex: number) => void;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, onRegenerateMessage }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentModel } = useModel();
+  const { language } = useLanguage();
+  const t = translations[language].assistant;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -25,23 +29,22 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false }
         <EmptyState />
       )}
 
-      {messages.map((message) => (
+      {messages.map((message, index) => (
         <React.Fragment key={message.id}>
-          {message.type === 'routing' ? (
-            <RoutingMessage message={message} />
-          ) : (
-            <MessageBubble message={message} />
-          )}
+          <MessageBubble 
+            message={message} 
+            onRegenerate={() => onRegenerateMessage?.(index)}
+          />
         </React.Fragment>
       ))}
 
       {isLoading && (
         <div className="flex justify-start mb-4">
           <div className="bg-gray-100 rounded-2xl rounded-bl-md px-4 py-3">
-            <div className="flex gap-1">
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="flex items-center gap-1">
+              <span className="text-gray-700 text-sm font-medium thinking-text">
+                {t.thinking}
+              </span>
             </div>
           </div>
         </div>

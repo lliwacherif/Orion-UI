@@ -7,9 +7,10 @@ import AttachmentChip from './AttachmentChip';
 interface MessageInputProps {
   onSendMessage: (message: string, attachments: Attachment[], useRag: boolean) => void;
   disabled?: boolean;
+  hasMessages?: boolean;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = false }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = false, hasMessages = false }) => {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [useRag, setUseRag] = useState(false);
@@ -113,91 +114,188 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
   };
 
   return (
-    <div className="border-t bg-white p-4">
-      {/* Attachments display */}
-      {attachments.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {attachments.map((attachment, index) => (
-            <AttachmentChip
-              key={index}
-              attachment={attachment}
-              onRemove={() => handleRemoveAttachment(index)}
+    <>
+      {!hasMessages ? (
+        // Centered input for new chat
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white">
+          {/* Centered input */}
+          <div className="w-full max-w-2xl">
+            {/* Attachments display */}
+            {attachments.length > 0 && (
+              <div className="mb-4 flex flex-wrap gap-2 justify-center">
+                {attachments.map((attachment, index) => (
+                  <AttachmentChip
+                    key={index}
+                    attachment={attachment}
+                    onRemove={() => handleRemoveAttachment(index)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Input area */}
+            <div className="flex gap-2 items-end bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
+              {/* Attachment button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled}
+                className="flex-shrink-0 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={t.attachFiles}
+                type="button"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                  />
+                </svg>
+              </button>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,application/pdf"
+                onChange={handleFileSelect}
+                className="hidden"
+                aria-label="File input"
+              />
+
+              {/* Textarea */}
+              <textarea
+                ref={textareaRef}
+                value={message}
+                onChange={handleTextareaChange}
+                onKeyDown={handleKeyDown}
+                placeholder={t.placeholder}
+                className="flex-1 resize-none border-0 rounded-lg px-4 py-3 focus:outline-none focus:ring-0 transition disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 placeholder-gray-400"
+                style={{
+                  '--tw-ring-color': 'rgba(59, 130, 246, 0.5)',
+                  '--tw-ring-offset-color': 'rgba(16, 185, 129, 0.3)'
+                } as React.CSSProperties}
+                rows={1}
+                disabled={disabled}
+                aria-label={t.sendMessage}
+              />
+
+              {/* Send button */}
+              <button
+                onClick={handleSend}
+                disabled={disabled || (!message.trim() && attachments.length === 0)}
+                className="flex-shrink-0 text-white p-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                style={{ backgroundColor: '#1e90ff' }}
+                aria-label={t.sendMessage}
+                type="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              {t.helpText}
+            </p>
+          </div>
+        </div>
+      ) : (
+        // Bottom input for existing chat
+        <div className="border-t bg-white p-4">
+          {/* Attachments display */}
+          {attachments.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {attachments.map((attachment, index) => (
+                <AttachmentChip
+                  key={index}
+                  attachment={attachment}
+                  onRemove={() => handleRemoveAttachment(index)}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Input area */}
+          <div className="flex gap-2 items-end">
+            {/* Attachment button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled}
+              className="flex-shrink-0 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label={t.attachFiles}
+              type="button"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                />
+              </svg>
+            </button>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,application/pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+              aria-label="File input"
             />
-          ))}
+
+            {/* Textarea */}
+            <textarea
+              ref={textareaRef}
+              value={message}
+              onChange={handleTextareaChange}
+              onKeyDown={handleKeyDown}
+              placeholder={t.placeholder}
+              className="flex-1 resize-none border border-gray-300 rounded-lg px-4 py-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-emerald-400 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
+              style={{
+                '--tw-ring-color': 'rgba(59, 130, 246, 0.5)',
+                '--tw-ring-offset-color': 'rgba(16, 185, 129, 0.3)'
+              } as React.CSSProperties}
+              rows={1}
+              disabled={disabled}
+              aria-label={t.sendMessage}
+            />
+
+            {/* Send button */}
+            <button
+              onClick={handleSend}
+              disabled={disabled || (!message.trim() && attachments.length === 0)}
+              className="flex-shrink-0 text-white p-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+              style={{ backgroundColor: '#1e90ff' }}
+              aria-label={t.sendMessage}
+              type="button"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 mt-2">
+            {t.helpText}
+          </p>
         </div>
       )}
-
-      {/* Input area */}
-      <div className="flex gap-2 items-end">
-        {/* Attachment button */}
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled}
-          className="flex-shrink-0 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label={t.attachFiles}
-          type="button"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-            />
-          </svg>
-        </button>
-
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,application/pdf"
-          onChange={handleFileSelect}
-          className="hidden"
-          aria-label="File input"
-        />
-
-        {/* Textarea */}
-        <textarea
-          ref={textareaRef}
-          value={message}
-          onChange={handleTextareaChange}
-          onKeyDown={handleKeyDown}
-          placeholder={t.placeholder}
-          className="flex-1 resize-none border border-gray-300 rounded-lg px-4 py-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-emerald-400 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
-          style={{
-            '--tw-ring-color': 'rgba(59, 130, 246, 0.5)',
-            '--tw-ring-offset-color': 'rgba(16, 185, 129, 0.3)'
-          } as React.CSSProperties}
-          rows={1}
-          disabled={disabled}
-          aria-label={t.sendMessage}
-        />
-
-        {/* Send button */}
-        <button
-          onClick={handleSend}
-          disabled={disabled || (!message.trim() && attachments.length === 0)}
-          className="flex-shrink-0 bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label={t.sendMessage}
-          type="button"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <p className="text-xs text-gray-500 mt-2">
-        {t.helpText}
-      </p>
-    </div>
+    </>
   );
 };
 

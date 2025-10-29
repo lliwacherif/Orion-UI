@@ -87,3 +87,27 @@ textarea.gradient-focus:focus {
   outline: none !important;
 }
 
+/* Thinking indicator animation */
+@keyframes ellipsis {
+  0%, 20% {
+    content: '';
+  }
+  40% {
+    content: '.';
+  }
+  60% {
+    content: '..';
+  }
+  80%, 100% {
+    content: '...';
+  }
+}
+
+.thinking-text::after {
+  content: '...';
+  animation: ellipsis 1.5s infinite;
+  display: inline-block;
+  width: 1.5em;
+  text-align: left;
+}
+

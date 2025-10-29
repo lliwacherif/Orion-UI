@@ -38,6 +38,7 @@ export interface ChatRequest {
   attachments?: Attachment[];
   use_rag?: boolean;
   conversation_history?: ConversationHistoryMessage[];
+  conversation_id?: number | null;
 }
 
 export interface Context {
@@ -49,6 +50,14 @@ export interface Context {
   score?: number;
 }
 
+export interface TokenUsage {
+  current_usage: number;
+  tokens_added: number;
+  reset_at: string;
+  tracking_enabled: boolean;
+  time_until_reset: string;
+}
+
 export interface ChatResponse {
   status?: 'ok' | 'error' | 'ocr_queued';
   message?: string;
@@ -56,6 +65,8 @@ export interface ChatResponse {
   model_response?: any;
   error?: string;
   jobs?: string[];
+  token_usage?: TokenUsage;
+  conversation_id?: number;
   // OpenAI-style response fields
   choices?: Array<{
     index: number;
@@ -114,9 +125,89 @@ export interface Message {
   isLoading?: boolean;
 }
 
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string | null;
+  is_active: boolean;
+  plan_type: string;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+export interface OCRExtractRequest {
+  user_id: string;
+  tenant_id?: string;
+  image_data: string; // base64 encoded image
+  filename: string;
+  language: string;
+}
+
+export interface OCRExtractResponse {
+  status: 'success' | 'error';
+  extracted_text?: string;
+  lines_count?: number;
+  message?: string;
+  filename?: string;
+  language?: string;
+  error?: string;
+}
+
 export interface Session {
   user_id: string;
   tenant_id?: string;
   session_id: string;
+}
+
+// Database-backed conversation types
+export interface ChatMessage {
+  id: number;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  attachments: any;
+  token_count: number | null;
+  model_used: string | null;
+  created_at: string;
+}
+
+export interface Conversation {
+  id: number;
+  title: string | null;
+  tenant_id: string | null;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+  messages?: ChatMessage[];
+}
+
+export interface CreateConversationRequest {
+  user_id: number;
+  title?: string;
+  tenant_id?: string;
+}
+
+export interface UpdateConversationRequest {
+  title: string;
+}
+
+// Pulse feature types
+export interface Pulse {
+  content: string;
+  generated_at: string;
+  next_generation: string;
+  conversations_analyzed: number;
+  messages_analyzed: number;
+}
+
+export interface PulseResponse {
+  status: 'ok' | 'error';
+  pulse?: Pulse;
+  message?: string;
 }
 
