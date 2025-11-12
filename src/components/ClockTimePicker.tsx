@@ -39,8 +39,6 @@ const ClockTimePicker: React.FC<ClockTimePickerProps> = ({ value, onChange, lang
   };
 
   const renderClockFace = () => {
-    const items = mode === 'hour' ? 12 : 60;
-    const step = mode === 'hour' ? 1 : 5; // Show minutes in 5-minute intervals
     const radius = 100;
     const centerX = 120;
     const centerY = 120;

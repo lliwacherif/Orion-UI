@@ -77,7 +77,7 @@ const AppContent: React.FC = () => {
             const notification: AgentNotificationData = {
               id: Date.now().toString(),
               taskName: task.taskName + (task.isSearch ? ' 🌐' : ''),
-              message: response.message,
+              message: response.message || '',
               timestamp: new Date().toISOString()
             };
 

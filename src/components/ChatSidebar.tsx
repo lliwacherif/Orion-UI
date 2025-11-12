@@ -209,18 +209,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
                       >
                         {/* Web Search Icon */}
                         {isSearchConversation(conv.id) && (
-                          <Globe 
-                            className="w-4 h-4 text-sky-400 flex-shrink-0" 
-                            title={language === 'en' ? 'Web search' : 'Recherche Web'}
-                          />
+                          <span title={language === 'en' ? 'Web search' : 'Recherche Web'}>
+                            <Globe className="w-4 h-4 text-sky-400 flex-shrink-0" />
+                          </span>
                         )}
 
                         {/* Agent Task Icon */}
                         {!isSearchConversation(conv.id) && isAgentTaskConversation(conv.title || '') && (
-                          <Clock 
-                            className="w-4 h-4 text-purple-400 flex-shrink-0" 
-                            title={language === 'en' ? 'Scheduled task' : 'Tâche planifiée'}
-                          />
+                          <span title={language === 'en' ? 'Scheduled task' : 'Tâche planifiée'}>
+                            <Clock className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                          </span>
                         )}
 
                         {/* Title */}

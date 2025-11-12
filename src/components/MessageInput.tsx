@@ -19,7 +19,7 @@ interface MessageInputProps {
 const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAgent, onWebSearch, disabled = false, hasMessages = false }) => {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [useRag, setUseRag] = useState(false);
+  const [useRag] = useState(false);
   const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   const [ocrMode, setOcrMode] = useState(false);
   const [agentMode, setAgentMode] = useState(false);

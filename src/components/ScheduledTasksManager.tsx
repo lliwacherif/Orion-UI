@@ -139,7 +139,9 @@ const ScheduledTasksManager: React.FC<ScheduledTasksManagerProps> = ({ isOpen, o
                         <div className="flex items-center gap-3 mb-2">
                           <div className="flex items-center gap-2">
                             {task.isSearch && (
-                              <Globe className="w-4 h-4 text-sky-500" title={language === 'en' ? 'Web search task' : 'Tâche de recherche Web'} />
+                              <span title={language === 'en' ? 'Web search task' : 'Tâche de recherche Web'}>
+                                <Globe className="w-4 h-4 text-sky-500" />
+                              </span>
                             )}
                             <h3 className="font-semibold text-gray-900 truncate">
                               {task.taskName}

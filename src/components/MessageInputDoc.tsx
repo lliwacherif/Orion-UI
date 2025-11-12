@@ -12,7 +12,7 @@ interface MessageInputDocProps {
 const MessageInputDoc: React.FC<MessageInputDocProps> = ({ onSendMessage, disabled = false, hasMessages = false }) => {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [useRag, setUseRag] = useState(false);
+  const [useRag] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { language } = useLanguage();
 

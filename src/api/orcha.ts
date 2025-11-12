@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import type { RouteRequest, RouteResponse, ChatRequest, ChatResponse, OCRExtractRequest, OCRExtractResponse, Conversation, ChatMessage, CreateConversationRequest, UpdateConversationRequest, PulseResponse, WebSearchRequest, WebSearchResponse } from '../types/orcha';
+import type { RouteRequest, RouteResponse, ChatRequest, ChatResponse, OCRExtractRequest, OCRExtractResponse, Conversation, CreateConversationRequest, UpdateConversationRequest, PulseResponse, WebSearchRequest, WebSearchResponse } from '../types/orcha';
 
 // Create axios instance with base configuration
 const api = axios.create({
