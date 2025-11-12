@@ -18,7 +18,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const [loading, setLoading] = useState(false);
   
   const { register } = useAuth();
-  const { language } = useLanguage();
+  const { language, toggleLanguage } = useLanguage();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -60,174 +60,193 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-emerald-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="mb-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-emerald-400 rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-            </div>
+    // Main container with background image
+    <div 
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
+      style={{
+        backgroundImage: 'url(/assets/background.jpg)',
+        backgroundSize: '130%',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      {/* Language Toggle - Top Right */}
+      <button
+        onClick={toggleLanguage}
+        className="absolute top-6 right-6 z-20 p-2.5 bg-gradient-to-r from-blue-500 to-green-400 hover:from-blue-600 hover:to-green-500 rounded-full transition-all shadow-md"
+        title={language === 'en' ? 'Switch to French' : 'Passer à l\'anglais'}
+      >
+        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 919-9" />
+        </svg>
+      </button>
+      
+      {/* Logo at the top */}
+      <img 
+        src="/assets/AURA_Icon.png" 
+        alt="Aura Logo" 
+        className="absolute top-8 sm:top-12 z-20 h-12 w-12 sm:h-14 sm:w-14 object-contain" 
+      />
+
+      {/* Blue shadow effect container */}
+      <div className="relative w-[90vw] sm:w-[85vw] md:w-[70vw] lg:w-[50vw] xl:w-[416px] max-w-[416px] px-4 sm:px-0">
+        {/* Blue shadow underneath the card */}
+        <div className="absolute inset-0 translate-y-4 transform rounded-3xl bg-blue-500/35 blur-xl"></div>
+        
+        {/* Register Card */}
+        <div className="relative w-full max-h-[90vh] overflow-y-auto overflow-hidden rounded-3xl bg-white/95 backdrop-blur-sm shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          
+          {/* Spiral Image: Positioned in bottom left */}
+          <img
+            src="/assets/spiral.png"
+            alt="Spiral"
+            className="absolute -bottom-20 -left-20 h-48 w-48 opacity-30"
+          />
+
+          {/* Card Content */}
+          <div className="relative z-10 p-6 sm:p-8 md:p-10">
+            <h2 className="mb-6 sm:mb-8 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#003A70' }}>
+              {language === 'en' ? 'Create Account' : 'Créer un compte'}
+            </h2>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                ⚠️ {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Username Input */}
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium mb-2" style={{ color: '#0EA5E9' }}>
+                  {language === 'en' ? 'Username' : 'Nom d\'utilisateur'} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder={language === 'en' ? 'Choose a username' : 'Choisissez un nom d\'utilisateur'}
+                  className="block w-full rounded-lg p-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: '#0EA5E9' }}
+                  required
+                  minLength={3}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Email Input */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: '#0EA5E9' }}>
+                  {language === 'en' ? 'Email' : 'Email'} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder={language === 'en' ? 'your@email.com' : 'votre@email.com'}
+                  className="block w-full rounded-lg p-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: '#0EA5E9' }}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Full Name Input */}
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium mb-2" style={{ color: '#0EA5E9' }}>
+                  {language === 'en' ? 'Full Name' : 'Nom complet'} <span className="text-gray-400 text-xs">({language === 'en' ? 'Optional' : 'Optionnel'})</span>
+                </label>
+                <input
+                  id="fullName"
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder={language === 'en' ? 'John Doe' : 'Jean Dupont'}
+                  className="block w-full rounded-lg p-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: '#0EA5E9' }}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Password Input */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: '#0EA5E9' }}>
+                  {language === 'en' ? 'Password' : 'Mot de passe'} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder={language === 'en' ? 'At least 6 characters' : 'Au moins 6 caractères'}
+                  className="block w-full rounded-lg p-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: '#0EA5E9' }}
+                  required
+                  minLength={6}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Confirm Password Input */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2" style={{ color: '#0EA5E9' }}>
+                  {language === 'en' ? 'Confirm Password' : 'Confirmer le mot de passe'} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder={language === 'en' ? 'Re-enter your password' : 'Ressaisissez votre mot de passe'}
+                  className="block w-full rounded-lg p-3 text-base focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: '#0EA5E9' }}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Create Account Button */}
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-gradient-to-r from-green-400 to-cyan-500 py-3 px-4 text-base font-medium text-white shadow-sm hover:from-green-500 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                disabled={loading}
+              >
+                {loading 
+                  ? (language === 'en' ? 'Creating account...' : 'Création du compte...')
+                  : (language === 'en' ? 'Create Account' : 'Créer un compte')
+                }
+              </button>
+
+              {/* Login link */}
+              <div className="text-center text-sm text-gray-600 mt-4">
+                {language === 'en' ? 'Already have an account?' : 'Vous avez déjà un compte?'}{' '}
+                <button
+                  onClick={onSwitchToLogin}
+                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                  type="button"
+                >
+                  {language === 'en' ? 'Login here' : 'Connectez-vous ici'}
+                </button>
+              </div>
+            </form>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {language === 'en' ? 'Create Account' : 'Créer un compte'}
-          </h1>
-          <p className="text-gray-600">
-            {language === 'en' ? 'Join AURA today' : 'Rejoignez AURA aujourd\'hui'}
-          </p>
         </div>
+      </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            ⚠️ {error}
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label 
-              htmlFor="username" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {language === 'en' ? 'Username' : 'Nom d\'utilisateur'} <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="username"
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder={language === 'en' ? 'Choose a username' : 'Choisissez un nom d\'utilisateur'}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              required
-              minLength={3}
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label 
-              htmlFor="email" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {language === 'en' ? 'Email' : 'Email'} <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder={language === 'en' ? 'your@email.com' : 'votre@email.com'}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label 
-              htmlFor="fullName" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {language === 'en' ? 'Full Name' : 'Nom complet'} <span className="text-gray-400 text-xs">({language === 'en' ? 'Optional' : 'Optionnel'})</span>
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              placeholder={language === 'en' ? 'John Doe' : 'Jean Dupont'}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label 
-              htmlFor="password" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {language === 'en' ? 'Password' : 'Mot de passe'} <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder={language === 'en' ? 'At least 6 characters' : 'Au moins 6 caractères'}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              required
-              minLength={6}
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label 
-              htmlFor="confirmPassword" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              {language === 'en' ? 'Confirm Password' : 'Confirmer le mot de passe'} <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder={language === 'en' ? 'Re-enter your password' : 'Ressaisissez votre mot de passe'}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-emerald-400 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-emerald-500 focus:ring-4 focus:ring-blue-300 transition font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-            disabled={loading}
-          >
-            {loading 
-              ? (language === 'en' ? 'Creating account...' : 'Création du compte...')
-              : (language === 'en' ? 'Create Account' : 'Créer un compte')
-            }
-          </button>
-        </form>
-
-        {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            {language === 'en' ? 'Already have an account?' : 'Vous avez déjà un compte?'}{' '}
-            <button
-              onClick={onSwitchToLogin}
-              className="text-blue-600 hover:text-blue-700 font-semibold"
-              type="button"
-            >
-              {language === 'en' ? 'Login here' : 'Connectez-vous ici'}
-            </button>
-          </p>
-        </div>
-
-        {/* Info */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-          <p className="text-xs text-blue-700 text-center">
-            🔒 {language === 'en' 
-              ? 'Your data is secure and encrypted'
-              : 'Vos données sont sécurisées et cryptées'}
-          </p>
-        </div>
+      {/* Footer Text */}
+      <div className="absolute bottom-4 sm:bottom-8 text-xs font-medium tracking-wider" style={{ color: '#003A70' }}>
+        POWERED BY VAERDIA
       </div>
     </div>
   );
 };
 
 export default Register;
-
-

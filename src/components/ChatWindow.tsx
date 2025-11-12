@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation } from 'react-query';
 import { useSession } from '../context/SessionContext';
 import { useAuth } from '../context/AuthContext';
@@ -6,17 +6,19 @@ import { useLanguage } from '../context/LanguageContext';
 import { useConversation } from '../context/ConversationContext';
 import { useModel } from '../context/ModelContext';
 import { translations } from '../translations';
-import { chat } from '../api/orcha';
-import type { Attachment, ChatRequest, TokenUsage } from '../types/orcha';
+import { chat, webSearch } from '../api/orcha';
+import type { Attachment, ChatRequest, TokenUsage, WebSearchRequest } from '../types/orcha';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
-import MessageInputDoc from './MessageInputDoc';
-import MessageInputVision from './MessageInputVision';
 import OCRExtractor from './OCRExtractor';
 import ChatSidebar from './ChatSidebar';
 import ModelSelector from './ModelSelector';
 import PulseButton from './PulseButton';
 import PulseModal from './PulseModal';
+import DocumentCanvas from './DocumentCanvas';
+import AgentScheduleModal, { type AgentTask } from './AgentScheduleModal';
+import AgentNotification, { type AgentNotificationData } from './AgentNotification';
+import { AgentTaskService } from '../services/agentTaskService';
 
 const ChatWindow: React.FC = () => {
   const { session } = useSession();
@@ -36,6 +38,11 @@ const ChatWindow: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
   const [showPulseModal, setShowPulseModal] = useState(false);
+  const [showCanvas, setShowCanvas] = useState(false);
+  const [canvasContent, setCanvasContent] = useState('');
+  const [showAgentModal, setShowAgentModal] = useState(false);
+  const [agentInstructions, setAgentInstructions] = useState('');
+  const [agentNotification, setAgentNotification] = useState<AgentNotificationData | null>(null);
 
   console.log('🔍 ChatWindow render:', { 
     user: !!user, 
@@ -45,11 +52,57 @@ const ChatWindow: React.FC = () => {
     currentModel 
   });
 
+  // Effect to manage sidebar when canvas opens
+  useEffect(() => {
+    if (showCanvas && isSidebarOpen) {
+      setIsSidebarOpen(false);
+    }
+  }, [showCanvas]);
+
+  // React Query mutation for web search
+  const searchMutation = useMutation(
+    (payload: WebSearchRequest) => webSearch(payload),
+    {
+      onSuccess: async (data) => {
+        console.log('✅ Web search mutation success');
+        console.log('🔍 Search query:', data.search_query);
+        console.log('🔍 Results count:', data.results_count);
+        
+        // Update token usage from search response
+        if (data.token_usage && data.token_usage.tracking_enabled) {
+          setTokenUsage(data.token_usage);
+          console.log(`Tokens used in search: ${data.token_usage.tokens_added}`);
+        }
+
+        // Mark this conversation as a search conversation
+        if (data.conversation_id) {
+          const searchConvs = localStorage.getItem('aura_search_conversations');
+          const ids: number[] = searchConvs ? JSON.parse(searchConvs) : [];
+          if (!ids.includes(data.conversation_id)) {
+            ids.push(data.conversation_id);
+            localStorage.setItem('aura_search_conversations', JSON.stringify(ids));
+            console.log('🌐 Marked conversation as web search:', data.conversation_id);
+          }
+        }
+
+        // Refresh conversations to show the new search conversation
+        if (data.conversation_id) {
+          await refreshConversations();
+          await refreshMessages();
+        }
+      },
+      onError: (error: any) => {
+        console.error('❌ Web search mutation error:', error);
+        refreshConversations();
+      },
+    }
+  );
+
   // React Query mutation for chat
   const chatMutation = useMutation(
     (payload: ChatRequest) => chat(payload),
     {
-      onSuccess: async (data) => {
+      onSuccess: async (data, variables) => {
         console.log('✅ Chat mutation success');
         console.log('🔍 Checking for token_usage in response...');
         console.log('🔍 data.token_usage exists?', !!data.token_usage);
@@ -74,6 +127,16 @@ const ChatWindow: React.FC = () => {
           console.log(`Total accumulated: ${data.token_usage.current_usage}`);
         } else {
           console.warn('⚠️ No token usage data in response or tracking disabled');
+        }
+
+        // Check if this was a response to a document attachment (PDF only, not OCR)
+        const hasDocumentAttachment = variables.attachments?.some(att => att.type === 'application/pdf');
+        if (hasDocumentAttachment && data.message) {
+          console.log('📄 Document response detected, opening canvas');
+          console.log('📄 Attachments:', variables.attachments);
+          setCanvasContent(data.message);
+          setShowCanvas(true);
+          setIsSidebarOpen(false); // Auto-close sidebar when canvas opens
         }
 
         // Refresh both conversations list and messages after successful chat
@@ -186,6 +249,93 @@ const ChatWindow: React.FC = () => {
     );
   };
 
+  // Canvas handlers
+  const handleCloseCanvas = () => {
+    setShowCanvas(false);
+    setCanvasContent('');
+    setIsSidebarOpen(true); // Re-open sidebar when canvas closes
+  };
+
+  const handleCanvasContentChange = (newContent: string) => {
+    setCanvasContent(newContent);
+  };
+
+  // Agent handlers
+  const handleScheduleAgent = (instructions: string, isSearch: boolean = false) => {
+    setAgentInstructions(instructions);
+    setShowAgentModal(true);
+    // Store search mode flag temporarily
+    sessionStorage.setItem('agent_is_search', isSearch.toString());
+  };
+
+  const handleSaveAgentTask = (task: AgentTask) => {
+    AgentTaskService.saveTask(task);
+    setShowAgentModal(false);
+    setAgentInstructions('');
+    sessionStorage.removeItem('agent_is_search');
+    
+    // Show confirmation
+    const taskType = task.isSearch 
+      ? (language === 'en' ? 'search task' : 'tâche de recherche')
+      : (language === 'en' ? 'task' : 'tâche');
+    alert(
+      language === 'en' 
+        ? `Agent ${taskType} "${task.taskName}" scheduled successfully!` 
+        : `${taskType} d'agent "${task.taskName}" planifiée avec succès !`
+    );
+  };
+
+  const handleCloseAgentNotification = () => {
+    setAgentNotification(null);
+  };
+
+  // Web search handler
+  const handleWebSearch = async (query: string) => {
+    if (!session || !user) {
+      console.error('❌ Cannot perform search: No session or user');
+      return;
+    }
+
+    // Check if this is the first message in the conversation (auto-name)
+    const isFirstMessage = messages.length === 0;
+    const shouldAutoName = isFirstMessage && currentConversation?.title === 'New Chat';
+
+    // If this is the first search, auto-name the conversation
+    if (shouldAutoName && currentConversationId) {
+      try {
+        // Generate a title from the search query (max 50 chars)
+        const autoTitle = query.length > 50 
+          ? query.substring(0, 47) + '...' 
+          : query;
+        
+        console.log('🏷️ Auto-naming search conversation:', autoTitle);
+        await updateConversationTitle(currentConversationId, autoTitle);
+      } catch (error) {
+        console.error('Failed to auto-name search conversation:', error);
+        // Continue anyway, naming is not critical
+      }
+    }
+
+    // Prepare web search request
+    const searchRequest: WebSearchRequest = {
+      user_id: user.id.toString(),
+      tenant_id: session.tenant_id,
+      query,
+      max_results: 5,
+      conversation_id: currentConversationId,
+    };
+
+    console.log('🔍 Sending web search request:', {
+      user_id: user.id,
+      conversation_id: currentConversationId,
+      query,
+      max_results: 5
+    });
+
+    // Call web search endpoint
+    searchMutation.mutate(searchRequest);
+  };
+
   return (
     <>
       {/* Sidebar with token tracking */}
@@ -204,7 +354,17 @@ const ChatWindow: React.FC = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-[#48d1cc] to-[#1e90ff] text-white px-6 py-4 shadow-md">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-3">
+            {/* Sidebar Toggle */}
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 hover:bg-white/10 rounded-lg transition"
+              aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
             <ModelSelector />
           </div>
           <div className="flex gap-2">
@@ -233,21 +393,10 @@ const ChatWindow: React.FC = () => {
       </div>
 
       {/* Info banner */}
-      <div className="bg-blue-50 border-b border-blue-100 px-6 py-3">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-start gap-2 text-sm">
-            <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <p className="text-blue-900 font-medium">
-                {language === 'en' ? 'AI-Powered Chat by VAERDIA' : 'Chat IA par VAERDIA'}
-              </p>
-            </div>
-          </div>
-
-          {/* Token Usage Badge */}
-          {tokenUsage && tokenUsage.tracking_enabled && (
+      {tokenUsage && tokenUsage.tracking_enabled && (
+        <div className="bg-blue-50 border-b border-blue-100 px-6 py-3">
+          <div className="flex items-center justify-end gap-4">
+            {/* Token Usage Badge */}
             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-blue-200">
               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -261,42 +410,48 @@ const ChatWindow: React.FC = () => {
                 </span>
               )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Render different interface based on model */}
       {currentModel === 'ocr' ? (
         <OCRExtractor />
       ) : (
-        <div className="flex-1 flex flex-col">
-          {/* Messages */}
-          <MessageList 
-            messages={messages} 
-            isLoading={chatMutation.isLoading}
-            onRegenerateMessage={handleRegenerateMessage}
-          />
+        <div className="flex-1 flex overflow-hidden">
+          {/* Chat section - takes full width when no canvas, or partial width when canvas is shown */}
+          <div className={`flex flex-col transition-all duration-500 ease-in-out overflow-hidden ${
+            showCanvas ? 'w-2/5' : 'w-full'
+          }`}>
+            {/* Messages */}
+            <MessageList 
+              messages={messages} 
+              isLoading={chatMutation.isLoading || searchMutation.isLoading}
+              onRegenerateMessage={handleRegenerateMessage}
+            />
 
-          {/* Input - Render different input based on model */}
-          {currentModel === 'doc' ? (
-            <MessageInputDoc
-              onSendMessage={handleSendMessage}
-              disabled={chatMutation.isLoading}
-              hasMessages={messages.length > 0}
-            />
-          ) : currentModel === 'vision' ? (
-            <MessageInputVision
-              onSendMessage={handleSendMessage}
-              disabled={chatMutation.isLoading}
-              hasMessages={messages.length > 0}
-            />
-          ) : (
+            {/* Input */}
             <MessageInput
               onSendMessage={handleSendMessage}
-              disabled={chatMutation.isLoading}
+              onScheduleAgent={handleScheduleAgent}
+              onWebSearch={handleWebSearch}
+              disabled={chatMutation.isLoading || searchMutation.isLoading}
               hasMessages={messages.length > 0}
             />
-          )}
+          </div>
+
+          {/* Canvas section - slides in from right */}
+          <div className={`flex flex-col transition-all duration-500 ease-in-out overflow-hidden ${
+            showCanvas ? 'w-3/5' : 'w-0'
+          }`}>
+            {showCanvas && (
+              <DocumentCanvas
+                content={canvasContent}
+                onClose={handleCloseCanvas}
+                onContentChange={handleCanvasContentChange}
+              />
+            )}
+          </div>
         </div>
       )}
       </div>
@@ -307,6 +462,23 @@ const ChatWindow: React.FC = () => {
         userId={user?.id || 0}
         isOpen={showPulseModal}
         onClose={() => setShowPulseModal(false)}
+      />
+
+      {/* Agent Feature */}
+      <AgentScheduleModal
+        isOpen={showAgentModal}
+        onClose={() => {
+          setShowAgentModal(false);
+          setAgentInstructions('');
+          sessionStorage.removeItem('agent_is_search');
+        }}
+        onSave={handleSaveAgentTask}
+        initialInstructions={agentInstructions}
+        isSearchMode={sessionStorage.getItem('agent_is_search') === 'true'}
+      />
+      <AgentNotification
+        notification={agentNotification}
+        onClose={handleCloseAgentNotification}
       />
     </>
   );

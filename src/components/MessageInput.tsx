@@ -1,23 +1,80 @@
-import React, { useState, useRef, KeyboardEvent } from 'react';
-import type { Attachment } from '../types/orcha';
+import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
+import { useMutation } from 'react-query';
+import type { Attachment, OCRExtractRequest } from '../types/orcha';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { useSession } from '../context/SessionContext';
 import { translations } from '../translations';
+import { extractOCRText } from '../api/orcha';
 import AttachmentChip from './AttachmentChip';
 
 interface MessageInputProps {
   onSendMessage: (message: string, attachments: Attachment[], useRag: boolean) => void;
+  onScheduleAgent?: (instructions: string, isSearch?: boolean) => void;
+  onWebSearch?: (query: string) => void;
   disabled?: boolean;
   hasMessages?: boolean;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = false, hasMessages = false }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAgent, onWebSearch, disabled = false, hasMessages = false }) => {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [useRag, setUseRag] = useState(false);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [ocrMode, setOcrMode] = useState(false);
+  const [agentMode, setAgentMode] = useState(false);
+  const [searchMode, setSearchMode] = useState(false);
+  const [agentSearchMode, setAgentSearchMode] = useState(false);
+  const [extractedOCRText, setExtractedOCRText] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ocrFileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const { language } = useLanguage();
+  const { user } = useAuth();
+  const { session } = useSession();
   const t = translations[language].input;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowAttachmentMenu(false);
+      }
+    };
+
+    if (showAttachmentMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAttachmentMenu]);
+
+  // OCR extraction mutation
+  const ocrMutation = useMutation(
+    async (payload: OCRExtractRequest) => extractOCRText(payload),
+    {
+      onSuccess: (data) => {
+        if (data.status === 'success' && data.extracted_text) {
+          setExtractedOCRText(data.extracted_text);
+          console.log('✅ OCR extraction successful');
+        } else {
+          console.error('❌ OCR extraction failed:', data.error);
+          alert(language === 'en' ? 'Failed to extract text from image' : 'Échec de l\'extraction du texte de l\'image');
+          setOcrMode(false);
+          setExtractedOCRText('');
+        }
+      },
+      onError: (error: any) => {
+        console.error('OCR extraction error:', error);
+        alert(language === 'en' ? 'Failed to extract text from image' : 'Échec de l\'extraction du texte de l\'image');
+        setOcrMode(false);
+        setExtractedOCRText('');
+      },
+    }
+  );
 
   const readFileAsBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -70,6 +127,50 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
       console.error('Error reading files:', error);
       alert('Failed to read files. Please try again.');
     }
+
+    setShowAttachmentMenu(false);
+  };
+
+  const handleOCRFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type (only images for OCR)
+    if (!file.type.startsWith('image/')) {
+      alert(language === 'en' ? 'Please select an image file' : 'Veuillez sélectionner un fichier image');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert(language === 'en' ? 'File size must be less than 10MB' : 'La taille du fichier doit être inférieure à 10 Mo');
+      return;
+    }
+
+    try {
+      // Convert image to base64
+      const base64Image = await readFileAsBase64(file);
+
+      // Prepare OCR request
+      const ocrRequest: OCRExtractRequest = {
+        user_id: user?.id?.toString() || '',
+        tenant_id: session?.tenant_id,
+        image_data: base64Image,
+        filename: file.name,
+        language: 'en' // Default to English
+      };
+
+      // Call OCR extraction
+      ocrMutation.mutate(ocrRequest);
+    } catch (error) {
+      console.error('Failed to process image:', error);
+      alert(language === 'en' ? 'Failed to process image' : 'Échec du traitement de l\'image');
+    }
+
+    // Reset file input
+    if (ocrFileInputRef.current) {
+      ocrFileInputRef.current.value = '';
+    }
   };
 
   const handleRemoveAttachment = (index: number) => {
@@ -84,16 +185,52 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
   };
 
   const handleSend = () => {
-    if (message.trim() || attachments.length > 0) {
-      onSendMessage(message.trim(), attachments, useRag);
+    const messageToSend = message.trim();
+    
+    // If Search mode is active, trigger web search
+    if (searchMode && messageToSend && onWebSearch) {
+      onWebSearch(messageToSend);
       setMessage('');
-      setAttachments([]);
-      // Keep useRag state as user might want to use it for multiple messages
-      
-      // Reset textarea height
+      setSearchMode(false);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
+      return;
+    }
+    
+    // If Agent mode is active, trigger schedule modal
+    if (agentMode && messageToSend && onScheduleAgent) {
+      onScheduleAgent(messageToSend, agentSearchMode);
+      setMessage('');
+      setAgentMode(false);
+      setAgentSearchMode(false);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+      return;
+    }
+    
+    // If OCR mode is active and we have extracted text, send it with the message
+    if (ocrMode && extractedOCRText) {
+      const combinedMessage = messageToSend 
+        ? `${messageToSend}\n\n[Extracted Text]:\n${extractedOCRText}`
+        : extractedOCRText;
+      
+      onSendMessage(combinedMessage, [], useRag);
+      setMessage('');
+      setOcrMode(false);
+      setExtractedOCRText('');
+    } else if (messageToSend || attachments.length > 0) {
+      onSendMessage(messageToSend, attachments, useRag);
+      setMessage('');
+      setAttachments([]);
+    }
+    
+    // Keep useRag state as user might want to use it for multiple messages
+    
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
     }
   };
 
@@ -113,11 +250,56 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
     textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
   };
 
+  const handleAttachDocumentClick = () => {
+    fileInputRef.current?.click();
+    setShowAttachmentMenu(false);
+  };
+
+  const handleOCRClick = () => {
+    setOcrMode(true);
+    setAgentMode(false);
+    setSearchMode(false);
+    setShowAttachmentMenu(false);
+    // Clear any existing attachments when switching to OCR mode
+    setAttachments([]);
+  };
+
+  const handleAgentClick = () => {
+    setAgentMode(true);
+    setOcrMode(false);
+    setSearchMode(false);
+    setShowAttachmentMenu(false);
+    // Clear any existing attachments when switching to Agent mode
+    setAttachments([]);
+  };
+
+  const handleSearchClick = () => {
+    setSearchMode(true);
+    setOcrMode(false);
+    setAgentMode(false);
+    setShowAttachmentMenu(false);
+    // Clear any existing attachments when switching to Search mode
+    setAttachments([]);
+  };
+
+  const handleCancelOCR = () => {
+    setOcrMode(false);
+    setExtractedOCRText('');
+  };
+
+  const handleCancelAgent = () => {
+    setAgentMode(false);
+  };
+
+  const handleCancelSearch = () => {
+    setSearchMode(false);
+  };
+
   return (
     <>
       {!hasMessages ? (
         // Centered input for new chat
-        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white">
+        <div className="flex-1 flex flex-col items-center justify-start pt-32 px-8 pb-8 bg-white">
           {/* Centered input */}
           <div className="w-full max-w-2xl">
             {/* Attachments display */}
@@ -133,27 +315,169 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
               </div>
             )}
 
+            {/* Search Mode Indicator */}
+            {searchMode && (
+              <div className="mb-4 flex items-center justify-center gap-2">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white px-4 py-2 rounded-full shadow-lg backdrop-blur-sm bg-opacity-90">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                  <span className="font-medium">{language === 'en' ? 'Search' : 'Rechercher'}</span>
+                </div>
+                <button
+                  onClick={handleCancelSearch}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {/* Agent Mode Indicator */}
+            {agentMode && (
+              <div className="mb-4 flex items-center justify-center gap-2">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded-full shadow-lg backdrop-blur-sm bg-opacity-90">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-medium">Agent</span>
+                </div>
+                <button
+                  onClick={() => setAgentSearchMode(!agentSearchMode)}
+                  className={`p-2 rounded-full transition ${
+                    agentSearchMode 
+                      ? 'bg-sky-500 text-white shadow-md' 
+                      : 'bg-white text-gray-500 hover:bg-gray-100'
+                  }`}
+                  title={language === 'en' ? 'Toggle web search for scheduled task' : 'Basculer la recherche Web pour la tâche planifiée'}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleCancelAgent}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {/* OCR Mode Indicator */}
+            {ocrMode && (
+              <div className="mb-4 flex items-center justify-center gap-2">
+                <div className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-4 py-2 rounded-full">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="font-medium">OCR</span>
+                  {ocrMutation.isLoading && (
+                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  )}
+                  {extractedOCRText && !ocrMutation.isLoading && (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                {!extractedOCRText && !ocrMutation.isLoading && (
+                  <button
+                    onClick={() => ocrFileInputRef.current?.click()}
+                    disabled={disabled || ocrMutation.isLoading}
+                    className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border-2 border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 transition"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <span className="text-sm font-medium">
+                      {language === 'en' ? 'Attach Document' : 'Joindre un Document'}
+                    </span>
+                  </button>
+                )}
+                <button
+                  onClick={handleCancelOCR}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
             {/* Input area */}
             <div className="flex gap-2 items-end bg-white rounded-2xl shadow-lg border border-gray-200 p-2">
-              {/* Attachment button */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={disabled}
-                className="flex-shrink-0 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label={t.attachFiles}
-                type="button"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                  />
-                </svg>
-              </button>
+              {/* Plus button with dropdown */}
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
+                  disabled={disabled}
+                  className="flex-shrink-0 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label={language === 'en' ? 'Attachment options' : 'Options de pièce jointe'}
+                  type="button"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </button>
 
-              {/* Hidden file input */}
+                {/* Dropdown Menu */}
+                {showAttachmentMenu && (
+                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+                    <button
+                      onClick={handleAttachDocumentClick}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                    >
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                      </svg>
+                      <span className="font-medium">
+                        {language === 'en' ? 'Attach document or image' : 'Joindre un document ou une image'}
+                      </span>
+                    </button>
+                    <button
+                      onClick={handleOCRClick}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                    >
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="font-medium">OCR</span>
+                    </button>
+                    <button
+                      onClick={handleAgentClick}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                    >
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-medium">
+                        {language === 'en' ? 'Agent' : 'Agent'}
+                      </span>
+                    </button>
+                    <button
+                      onClick={handleSearchClick}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                    >
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                      </svg>
+                      <span className="font-medium">
+                        {language === 'en' ? 'Search' : 'Rechercher'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Hidden file inputs */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -163,6 +487,14 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
                 className="hidden"
                 aria-label="File input"
               />
+              <input
+                ref={ocrFileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleOCRFileSelect}
+                className="hidden"
+                aria-label="OCR file input"
+              />
 
               {/* Textarea */}
               <textarea
@@ -170,21 +502,28 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
                 value={message}
                 onChange={handleTextareaChange}
                 onKeyDown={handleKeyDown}
-                placeholder={t.placeholder}
+                placeholder={searchMode
+                  ? (language === 'en' ? 'Search the web...' : 'Rechercher sur le Web...')
+                  : agentMode 
+                    ? agentSearchMode
+                      ? (language === 'en' ? 'Schedule a web search query...' : 'Planifier une recherche Web...')
+                      : (language === 'en' ? 'Ask the agent to do stuff for you...' : 'Demandez à l\'agent de faire quelque chose pour vous...')
+                    : t.placeholder
+                }
                 className="flex-1 resize-none border-0 rounded-lg px-4 py-3 focus:outline-none focus:ring-0 transition disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 placeholder-gray-400"
                 style={{
                   '--tw-ring-color': 'rgba(59, 130, 246, 0.5)',
                   '--tw-ring-offset-color': 'rgba(16, 185, 129, 0.3)'
                 } as React.CSSProperties}
                 rows={1}
-                disabled={disabled}
+                disabled={disabled || ocrMutation.isLoading}
                 aria-label={t.sendMessage}
               />
 
               {/* Send button */}
               <button
                 onClick={handleSend}
-                disabled={disabled || (!message.trim() && attachments.length === 0)}
+                disabled={disabled || (!message.trim() && attachments.length === 0 && (!ocrMode || !extractedOCRText)) || ocrMutation.isLoading}
                 className="flex-shrink-0 text-white p-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
                 style={{ backgroundColor: '#1e90ff' }}
                 aria-label={t.sendMessage}
@@ -222,27 +561,169 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
             </div>
           )}
 
+          {/* Search Mode Indicator */}
+          {searchMode && (
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white px-4 py-2 rounded-full text-sm shadow-lg backdrop-blur-sm bg-opacity-90">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+                <span className="font-medium">{language === 'en' ? 'Search' : 'Rechercher'}</span>
+              </div>
+              <button
+                onClick={handleCancelSearch}
+                className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Agent Mode Indicator */}
+          {agentMode && (
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded-full text-sm shadow-lg backdrop-blur-sm bg-opacity-90">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="font-medium">Agent</span>
+              </div>
+              <button
+                onClick={() => setAgentSearchMode(!agentSearchMode)}
+                className={`p-1.5 rounded-full transition ${
+                  agentSearchMode 
+                    ? 'bg-sky-500 text-white shadow-md' 
+                    : 'bg-white text-gray-500 hover:bg-gray-100'
+                }`}
+                title={language === 'en' ? 'Toggle web search for scheduled task' : 'Basculer la recherche Web pour la tâche planifiée'}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+              </button>
+              <button
+                onClick={handleCancelAgent}
+                className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* OCR Mode Indicator */}
+          {ocrMode && (
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-4 py-2 rounded-full text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="font-medium">OCR</span>
+                {ocrMutation.isLoading && (
+                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                )}
+                {extractedOCRText && !ocrMutation.isLoading && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              {!extractedOCRText && !ocrMutation.isLoading && (
+                <button
+                  onClick={() => ocrFileInputRef.current?.click()}
+                  disabled={disabled || ocrMutation.isLoading}
+                  className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 transition text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                  <span className="font-medium">
+                    {language === 'en' ? 'Attach Document' : 'Joindre un Document'}
+                  </span>
+                </button>
+              )}
+              <button
+                onClick={handleCancelOCR}
+                className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
           {/* Input area */}
           <div className="flex gap-2 items-end">
-            {/* Attachment button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled}
-              className="flex-shrink-0 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label={t.attachFiles}
-              type="button"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                />
-              </svg>
-            </button>
+            {/* Plus button with dropdown */}
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
+                disabled={disabled}
+                className="flex-shrink-0 p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label={language === 'en' ? 'Attachment options' : 'Options de pièce jointe'}
+                type="button"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
 
-            {/* Hidden file input */}
+              {/* Dropdown Menu */}
+              {showAttachmentMenu && (
+                <div className="absolute bottom-full left-0 mb-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+                  <button
+                    onClick={handleAttachDocumentClick}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                  >
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <span className="font-medium">
+                      {language === 'en' ? 'Attach document or image' : 'Joindre un document ou une image'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={handleOCRClick}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                  >
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="font-medium">OCR</span>
+                  </button>
+                  <button
+                    onClick={handleAgentClick}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                  >
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="font-medium">
+                      {language === 'en' ? 'Agent' : 'Agent'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={handleSearchClick}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                  >
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    <span className="font-medium">
+                      {language === 'en' ? 'Search' : 'Rechercher'}
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Hidden file inputs */}
             <input
               ref={fileInputRef}
               type="file"
@@ -252,6 +733,14 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
               className="hidden"
               aria-label="File input"
             />
+            <input
+              ref={ocrFileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleOCRFileSelect}
+              className="hidden"
+              aria-label="OCR file input"
+            />
 
             {/* Textarea */}
             <textarea
@@ -259,21 +748,28 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
               value={message}
               onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
-              placeholder={t.placeholder}
+              placeholder={searchMode
+                ? (language === 'en' ? 'Search the web...' : 'Rechercher sur le Web...')
+                : agentMode 
+                  ? agentSearchMode
+                    ? (language === 'en' ? 'Schedule a web search query...' : 'Planifier une recherche Web...')
+                    : (language === 'en' ? 'Ask the agent to do stuff for you...' : 'Demandez à l\'agent de faire quelque chose pour vous...')
+                  : t.placeholder
+              }
               className="flex-1 resize-none border border-gray-300 rounded-lg px-4 py-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-emerald-400 transition disabled:bg-gray-100 disabled:cursor-not-allowed"
               style={{
                 '--tw-ring-color': 'rgba(59, 130, 246, 0.5)',
                 '--tw-ring-offset-color': 'rgba(16, 185, 129, 0.3)'
               } as React.CSSProperties}
               rows={1}
-              disabled={disabled}
+              disabled={disabled || ocrMutation.isLoading}
               aria-label={t.sendMessage}
             />
 
             {/* Send button */}
             <button
               onClick={handleSend}
-              disabled={disabled || (!message.trim() && attachments.length === 0)}
+              disabled={disabled || (!message.trim() && attachments.length === 0 && (!ocrMode || !extractedOCRText)) || ocrMutation.isLoading}
               className="flex-shrink-0 text-white p-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
               style={{ backgroundColor: '#1e90ff' }}
               aria-label={t.sendMessage}
@@ -300,4 +796,3 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, disabled = f
 };
 
 export default MessageInput;
-

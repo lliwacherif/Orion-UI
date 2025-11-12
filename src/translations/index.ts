@@ -33,12 +33,21 @@ export const translations = {
     
     // Message input
     input: {
-      placeholder: 'Type a message... (Shift+Enter for new line)',
+      placeholder: 'Type a message...',
       useRag: 'Use RAG',
       useRagTooltip: '(Retrieval-Augmented Generation)',
       helpText: 'Press Enter to send, Shift+Enter for new line. Supports images and PDFs.',
       attachFiles: 'Attach files',
       sendMessage: 'Send message',
+      attachmentOptions: 'Attachment options',
+      attachDocumentOrImage: 'Attach document or image',
+      attachDocument: 'Attach Document',
+      ocrMode: 'OCR',
+      extractingText: 'Extracting text...',
+      ocrFailed: 'Failed to extract text from image',
+      selectImageFile: 'Please select an image file',
+      fileSizeTooLarge: 'File size must be less than 10MB',
+      failedToProcess: 'Failed to process image',
     },
     
     // Routing message
@@ -169,12 +178,21 @@ export const translations = {
     
     // Message input
     input: {
-      placeholder: 'Tapez un message... (Maj+Entrée pour nouvelle ligne)',
+      placeholder: 'Tapez un message...',
       useRag: 'Utiliser RAG',
       useRagTooltip: '(Génération Augmentée par Récupération)',
       helpText: 'Appuyez sur Entrée pour envoyer, Maj+Entrée pour nouvelle ligne. Prend en charge les images et les PDF.',
       attachFiles: 'Joindre des fichiers',
       sendMessage: 'Envoyer le message',
+      attachmentOptions: 'Options de pièce jointe',
+      attachDocumentOrImage: 'Joindre un document ou une image',
+      attachDocument: 'Joindre un Document',
+      ocrMode: 'OCR',
+      extractingText: 'Extraction du texte...',
+      ocrFailed: 'Échec de l\'extraction du texte de l\'image',
+      selectImageFile: 'Veuillez sélectionner un fichier image',
+      fileSizeTooLarge: 'La taille du fichier doit être inférieure à 10 Mo',
+      failedToProcess: 'Échec du traitement de l\'image',
     },
     
     // Routing message

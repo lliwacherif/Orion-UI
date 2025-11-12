@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import type { RouteRequest, RouteResponse, ChatRequest, ChatResponse, OCRExtractRequest, OCRExtractResponse, Conversation, ChatMessage, CreateConversationRequest, UpdateConversationRequest, PulseResponse } from '../types/orcha';
+import type { RouteRequest, RouteResponse, ChatRequest, ChatResponse, OCRExtractRequest, OCRExtractResponse, Conversation, ChatMessage, CreateConversationRequest, UpdateConversationRequest, PulseResponse, WebSearchRequest, WebSearchResponse } from '../types/orcha';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -415,6 +415,153 @@ export const regeneratePulse = async (userId: number): Promise<PulseResponse> =>
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       console.error('Regenerate pulse error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Perform a web search using DuckDuckGo and get AI-refined results
+ * 
+ * @param payload - The web search request payload
+ * @returns Promise with the search response including AI-refined answer
+ * @throws AxiosError if the request fails
+ */
+export const webSearch = async (payload: WebSearchRequest): Promise<WebSearchResponse> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.post<WebSearchResponse>('/orcha/search', payload, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Web Search Response:', response.data);
+    console.log('📝 Status:', response.data.status);
+    console.log('💬 Message:', response.data.message);
+    console.log('🔎 Search Query:', response.data.search_query);
+    console.log('📊 Results Count:', response.data.results_count);
+    console.log('🪙 Token Usage:', response.data.token_usage);
+    
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Web search error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Save user memory to backend database
+ * 
+ * @param userId - The user ID
+ * @param content - The memory content to save
+ * @param options - Optional fields (title, conversation_id, source, tags)
+ * @returns Promise with the save status
+ * @throws AxiosError if the request fails
+ */
+export const saveMemory = async (
+  userId: number, 
+  content: string,
+  options?: {
+    title?: string | null;
+    conversation_id?: number | null;
+    source?: 'manual' | 'auto_extraction' | 'import' | 'legacy';
+    tags?: string[] | null;
+  }
+): Promise<{ status: string; message: string; memory_id?: number }> => {
+  try {
+    const traceId = uuidv4();
+    
+    const payload = {
+      user_id: userId,
+      content: content,
+      title: options?.title || null,
+      conversation_id: options?.conversation_id || null,
+      source: options?.source || 'auto_extraction',
+      tags: options?.tags || null
+    };
+    
+    const response = await api.post<{ status: string; message: string; memory_id?: number }>('/memory', payload, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Save Memory Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Save memory error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Get user's stored memories from backend database
+ * 
+ * @param userId - The user ID
+ * @param limit - Maximum number of memories to return (default: 50)
+ * @param offset - Number of memories to skip (default: 0)
+ * @returns Promise with the memories data (array format)
+ * @throws AxiosError if the request fails
+ */
+export const getMemory = async (
+  userId: number,
+  limit: number = 50,
+  offset: number = 0
+): Promise<{
+  status: string;
+  memories: Array<{
+    id: number;
+    content: string;
+    title?: string | null;
+    conversation_id?: number | null;
+    source?: string;
+    tags?: string[] | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  }>;
+  total: number;
+  limit: number;
+  offset: number;
+}> => {
+  try {
+    const traceId = uuidv4();
+    
+    const response = await api.get(`/memory/${userId}?limit=${limit}&offset=${offset}`, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔍 Get Memory Response:', response.data);
+    console.log(`📊 Total memories: ${response.data.total}`);
+    console.log(`📝 Memories in response: ${response.data.memories?.length || 0}`);
+    
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Get memory error:', {
         message: axiosError.message,
         response: axiosError.response?.data,
         status: axiosError.response?.status,

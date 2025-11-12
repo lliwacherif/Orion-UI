@@ -10,8 +10,6 @@ const ModelSelector: React.FC = () => {
 
   const models = [
     { id: 'chat' as ModelType, name: 'AURA', description: language === 'en' ? 'General chat' : 'Chat général' },
-    { id: 'doc' as ModelType, name: 'AURA Doc', description: language === 'en' ? 'Document analysis' : 'Analyse de documents' },
-    { id: 'vision' as ModelType, name: 'AURA Vision', description: language === 'en' ? 'Image analysis' : 'Analyse d\'images' },
     { id: 'ocr' as ModelType, name: 'AURA OCR', description: language === 'en' ? 'Text extraction' : 'Extraction de texte' },
   ];
 

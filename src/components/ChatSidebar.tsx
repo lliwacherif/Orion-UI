@@ -7,6 +7,8 @@ import { translations } from '../translations';
 import type { TokenUsage } from '../types/orcha';
 import UserProfile from './UserProfile';
 import { getTokenUsage } from '../api/orcha';
+import { AgentTaskService } from '../services/agentTaskService';
+import { Clock, Globe } from 'lucide-react';
 
 interface ChatSidebarProps {
   isOpen: boolean;
@@ -105,6 +107,26 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
     }
   };
 
+  // Check if a conversation is from an agent task
+  const isAgentTaskConversation = (convTitle: string) => {
+    const tasks = AgentTaskService.getAllTasks();
+    return tasks.some(task => 
+      convTitle.includes(task.taskName) || convTitle.includes(task.instructions.substring(0, 50))
+    );
+  };
+
+  // Check if a conversation is from a web search
+  const isSearchConversation = (convId: number) => {
+    const searchConvs = localStorage.getItem('aura_search_conversations');
+    if (!searchConvs) return false;
+    try {
+      const ids: number[] = JSON.parse(searchConvs);
+      return ids.includes(convId);
+    } catch {
+      return false;
+    }
+  };
+
   // Filter conversations based on search query
   const filteredConversations = conversations.filter(conv =>
     conv.title?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -185,6 +207,22 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
                             : 'text-gray-300 hover:bg-gray-800'
                         }`}
                       >
+                        {/* Web Search Icon */}
+                        {isSearchConversation(conv.id) && (
+                          <Globe 
+                            className="w-4 h-4 text-sky-400 flex-shrink-0" 
+                            title={language === 'en' ? 'Web search' : 'Recherche Web'}
+                          />
+                        )}
+
+                        {/* Agent Task Icon */}
+                        {!isSearchConversation(conv.id) && isAgentTaskConversation(conv.title || '') && (
+                          <Clock 
+                            className="w-4 h-4 text-purple-400 flex-shrink-0" 
+                            title={language === 'en' ? 'Scheduled task' : 'Tâche planifiée'}
+                          />
+                        )}
+
                         {/* Title */}
                         <span className="flex-1 text-sm truncate">{conv.title || 'Untitled Conversation'}</span>
 
@@ -253,6 +291,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </button>
+
+          {/* Branding text */}
+          <p className="text-xs text-gray-400 text-center">
+            {language === 'en' ? 'AI-Powered Chat by VAERDIA' : 'Chat IA par VAERDIA'}
+          </p>
         </div>
       </div>
 
@@ -262,25 +305,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
         onClose={() => setIsProfileOpen(false)}
         tokenUsage={currentTokenUsage}
       />
-
-      {/* Toggle Button */}
-      <button
-        onClick={onToggle}
-        className={`fixed top-20 z-30 bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg shadow-lg transition-all duration-300 ${
-          isOpen ? 'left-[272px]' : 'left-2'
-        }`}
-        aria-label={isOpen ? t.closeSidebar : t.openSidebar}
-        title={isOpen ? t.closeSidebar : t.openSidebar}
-      >
-        <svg
-          className={`w-5 h-5 transition-transform duration-300 ${isOpen ? 'rotate-0' : 'rotate-180'}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
 
       {/* Overlay for mobile */}
       {isOpen && (

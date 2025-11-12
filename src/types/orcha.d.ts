@@ -211,3 +211,22 @@ export interface PulseResponse {
   message?: string;
 }
 
+// Web Search feature types
+export interface WebSearchRequest {
+  user_id: string;
+  tenant_id?: string;
+  query: string;
+  max_results?: number;
+  conversation_id?: number | null;
+}
+
+export interface WebSearchResponse {
+  status: 'ok' | 'error';
+  message: string;
+  conversation_id?: number;
+  search_query?: string;
+  results_count?: number;
+  token_usage?: TokenUsage;
+  error?: string;
+}
+
