@@ -99,7 +99,7 @@ export const translations = {
 
     // OCR Extractor
     ocr: {
-      title: '(BETA) OCR Text Extractor',
+      title: 'OCR Text Extractor',
       subtitle: 'Upload images to extract text using AI-powered OCR',
       languageDetection: 'Language Detection',
       documentType: 'Document Type',
@@ -244,7 +244,7 @@ export const translations = {
 
     // OCR Extractor
     ocr: {
-      title: '(BETA) Extracteur de Texte OCR',
+      title: 'Extracteur de Texte OCR',
       subtitle: 'Téléchargez des images pour extraire du texte avec l\'OCR alimenté par l\'IA',
       languageDetection: 'Détection de Langue',
       documentType: 'Type de Document',

@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useConversation } from '../context/ConversationContext';
 import { useModel } from '../context/ModelContext';
-import { translations } from '../translations';
 import { chat, webSearch } from '../api/orcha';
 import type { Attachment, ChatRequest, TokenUsage, WebSearchRequest } from '../types/orcha';
 import MessageList from './MessageList';
@@ -30,11 +29,9 @@ const ChatWindow: React.FC = () => {
     messages, 
     refreshConversations,
     refreshMessages,
-    updateConversationTitle,
-    clearCurrentConversation 
+    updateConversationTitle
   } = useConversation();
   const { currentModel } = useModel();
-  const t = translations[language].chat;
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
   const [showPulseModal, setShowPulseModal] = useState(false);
@@ -208,11 +205,6 @@ const ChatWindow: React.FC = () => {
     chatMutation.mutate(chatRequest);
   };
 
-  const handleClearChat = () => {
-    if (window.confirm(t.clearConfirm)) {
-      clearCurrentConversation();
-    }
-  };
 
   // Handle regenerating a message (when user clicks reload icon on assistant message)
   const handleRegenerateMessage = (messageIndex: number) => {
@@ -352,45 +344,41 @@ const ChatWindow: React.FC = () => {
         }`}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#48d1cc] to-[#1e90ff] text-white px-6 py-4 shadow-md">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* Sidebar Toggle */}
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-white/10 rounded-lg transition"
-              aria-label={isSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <ModelSelector />
-          </div>
-          <div className="flex gap-2">
-            {/* Language Toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="px-3 py-2 rounded-lg transition text-sm font-medium hover:opacity-90"
-              style={{ backgroundColor: '#1e90ff' }}
-              aria-label="Toggle language"
-              title={language === 'en' ? 'Switch to French' : 'Passer à l\'anglais'}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm0 0c3 0 5 4.5 5 9s-2 9-5 9-5-4.5-5-9 2-9 5-9zm-9 9h18" />
-              </svg>
-            </button>
-            <button
-              onClick={handleClearChat}
-              className="px-3 py-2 rounded-lg transition text-sm hover:opacity-90"
-              style={{ backgroundColor: '#1e90ff' }}
-              aria-label="Clear chat history"
-            >
-              {t.clearButton}
-            </button>
+        <div className="bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Hamburger menu - only show when sidebar is closed */}
+              {!isSidebarOpen && (
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                  style={{ color: '#003A70' }}
+                  aria-label="Open sidebar"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              )}
+              <ModelSelector />
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Language Toggle */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition text-sm font-medium hover:bg-gray-100"
+                style={{ color: '#003A70' }}
+                aria-label="Toggle language"
+                title={language === 'en' ? 'Switch to French' : 'Passer à l\'anglais'}
+              >
+                <span className="text-sm font-semibold">{language === 'en' ? 'English' : 'Français'}</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Info banner */}
       {tokenUsage && tokenUsage.tracking_enabled && (
