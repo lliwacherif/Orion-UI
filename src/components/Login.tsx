@@ -45,17 +45,18 @@ const Login: React.FC = () => {
         {/* Login Card */}
         <div className="relative w-full overflow-hidden rounded-3xl bg-white/95 backdrop-blur-sm shadow-2xl">
           
-          {/* Spiral Image: Positioned in bottom left */}
+          {/* Mask Image: Positioned in bottom left */}
           <img
-            src="/assets/spiral.png"
-            alt="Spiral"
-            className="absolute -bottom-20 -left-20 h-48 w-48 opacity-30"
+            src="/assets/mask.png"
+            alt="Decorative mask"
+            className="absolute h-64 w-64 opacity-40 z-0"
+            style={{ left: '-15%', bottom: 0 }}
           />
 
           {/* Card Content */}
           <div className="relative z-10 p-6 sm:p-8 md:p-10">
             <h2 className="mb-6 sm:mb-8 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#003A70' }}>
-              Welcome back
+              Welcome
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">

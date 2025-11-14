@@ -6,11 +6,12 @@ const ModelSelector: React.FC = () => {
   const { currentModel, setModel } = useModel();
   const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  const [isTemporaryMode, setIsTemporaryMode] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const models = [
-    { id: 'chat' as ModelType, name: 'AURA', description: language === 'en' ? 'General chat' : 'Chat général' },
-    { id: 'ocr' as ModelType, name: 'AURA OCR', description: language === 'en' ? 'Text extraction' : 'Extraction de texte' },
+    { id: 'chat' as ModelType, name: 'AURA' },
+    { id: 'ocr' as ModelType, name: 'OCR' },
   ];
 
   const selectedModel = models.find(m => m.id === currentModel) || models[0];
@@ -29,17 +30,17 @@ const ModelSelector: React.FC = () => {
 
   const handleModelChange = (modelId: ModelType) => {
     setModel(modelId);
-    setIsOpen(false);
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition text-white"
+        className="flex items-center gap-2 px-4 py-2 bg-transparent hover:bg-gray-100 rounded-lg transition"
+        style={{ color: '#003A70' }}
         aria-label="Select model"
       >
-        <span className="font-semibold">{selectedModel.name}</span>
+        <span className="font-semibold text-sm">{selectedModel.name}</span>
         <svg
           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
@@ -51,30 +52,80 @@ const ModelSelector: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
-          {models.map((model) => (
+        <div 
+          className="absolute top-full left-0 mt-2 w-56 rounded-xl shadow-2xl z-50 overflow-hidden"
+          style={{
+            background: '#003A70'
+          }}
+        >
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-white/20 flex items-center justify-between">
+            <span className="text-white font-semibold text-sm">Model</span>
             <button
-              key={model.id}
-              onClick={() => handleModelChange(model.id)}
-              className={`w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition text-left ${
-                currentModel === model.id ? 'bg-blue-50' : ''
-              }`}
+              onClick={() => setIsOpen(false)}
+              className="text-white/80 hover:text-white transition"
             >
-              <div className="flex-1">
-                <div className="font-semibold text-gray-900">{model.name}</div>
-                <div className="text-xs text-gray-500">{model.description}</div>
-              </div>
-              {currentModel === model.id && (
-                <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
-          ))}
+          </div>
+
+          {/* Model Options */}
+          <div className="p-3 space-y-1">
+            {models.map((model) => (
+              <button
+                key={model.id}
+                onClick={() => handleModelChange(model.id)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition text-left"
+              >
+                {/* Model Name */}
+                <span className="flex-1 text-white font-medium text-sm">{model.name}</span>
+                
+                {/* Radio Button */}
+                <div className="flex items-center justify-center">
+                  {currentModel === model.id ? (
+                    <div className="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded-full border-2 border-white/60"></div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Temporary Chat Toggle */}
+          <div className="px-3 pb-3 pt-1">
+            <button
+              onClick={() => setIsTemporaryMode(!isTemporaryMode)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition text-left"
+            >
+              {/* Clock Icon */}
+              <svg className="w-5 h-5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              
+              {/* Label */}
+              <span className="flex-1 text-white font-medium text-sm">
+                {language === 'en' ? 'Temporary chat' : 'Chat temporaire'}
+              </span>
+              
+              {/* Toggle Switch */}
+              <div 
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  isTemporaryMode ? 'bg-emerald-400' : 'bg-white/30'
+                }`}
+              >
+                <div 
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    isTemporaryMode ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </div>
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -8,7 +8,7 @@ import type { TokenUsage } from '../types/orcha';
 import UserProfile from './UserProfile';
 import { getTokenUsage } from '../api/orcha';
 import { AgentTaskService } from '../services/agentTaskService';
-import { Clock, Globe } from 'lucide-react';
+import { Clock, Globe, MessageSquare, Menu, Search } from 'lucide-react';
 
 interface ChatSidebarProps {
   isOpen: boolean;
@@ -34,6 +34,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
   const [searchQuery, setSearchQuery] = useState('');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [currentTokenUsage, setCurrentTokenUsage] = useState<TokenUsage | null>(tokenUsage || null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Update local token usage when prop changes (from chat responses)
   useEffect(() => {
@@ -75,6 +76,24 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
     await createNewConversation();
     setModel('chat'); // Switch back to chat mode
   };
+
+  // Toggle search visibility
+  const handleToggleSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+    if (isSearchOpen) {
+      // Clear search when closing
+      setSearchQuery('');
+    }
+  };
+
+  // Auto-focus search input when opened
+  useEffect(() => {
+    if (isSearchOpen) {
+      setTimeout(() => {
+        document.getElementById('search-input')?.focus();
+      }, 100);
+    }
+  }, [isSearchOpen]);
 
   const handleDelete = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -122,7 +141,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
     try {
       const ids: number[] = JSON.parse(searchConvs);
       return ids.includes(convId);
-    } catch {
+    } catch (error) {
+      console.error('Error parsing search conversations:', error);
       return false;
     }
   };
@@ -149,62 +169,104 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
         className={`fixed left-0 top-0 h-full text-white transition-all duration-300 ease-in-out z-20 flex flex-col ${
           isOpen ? 'w-64' : 'w-0'
         } overflow-hidden`}
-        style={{ backgroundColor: '#003a70' }}
+        style={{ 
+          background: 'linear-gradient(to bottom, #003a70 0%, #00294d 50%, #001f3d 100%)'
+        }}
       >
-        {/* Header */}
-        <div className="p-3 border-b border-gray-700 flex-shrink-0 space-y-2">
-          {/* New Chat Button */}
+        {/* Top Header with Logo and Menu */}
+        <div className="p-4 border-b border-white/10 flex-shrink-0 flex items-center justify-between">
+          <img 
+            src="/assets/AURA_Icon.png" 
+            alt="AURA Logo" 
+            className="w-10 h-10 object-contain"
+          />
           <button
-            onClick={handleNewChat}
-            className="w-full text-white hover:bg-gray-800 rounded-lg px-3 py-2.5 transition flex items-center gap-3 text-sm"
+            onClick={onToggle}
+            className="p-2 hover:bg-white/10 rounded-lg transition"
+            aria-label="Toggle menu"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-            <span>{t.newChat}</span>
+            <Menu className="w-5 h-5" />
           </button>
+        </div>
 
-          {/* Search Input */}
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        {/* New Chat and Search Section */}
+        <div className="p-3 border-b border-white/10 flex-shrink-0">
+          {/* New Chat Button with Search Icon */}
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              onClick={handleNewChat}
+              className={`bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full py-2.5 transition flex items-center justify-center gap-2 text-sm font-medium shadow-lg ${
+                isSearchOpen ? 'w-10 h-10 p-0' : 'flex-1 px-4'
+              }`}
+              title={isSearchOpen ? t.newChat : undefined}
+            >
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={language === 'en' ? 'Search chats' : 'Rechercher des chats'}
-              className="w-full bg-gray-800 hover:bg-gray-750 text-white text-sm rounded-lg pl-10 pr-3 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-600 transition"
-            />
+              {!isSearchOpen && <span className="whitespace-nowrap">{t.newChat}</span>}
+            </button>
+            <button
+              onClick={handleToggleSearch}
+              className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition flex-shrink-0"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
           </div>
+
+          {/* Search Input - Animated */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              isSearchOpen ? 'max-h-12 opacity-100' : 'max-h-0 opacity-0'
+            }`}
+          >
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Search className="w-4 h-4 text-white/60" />
+              </div>
+              <input
+                id="search-input"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={language === 'en' ? 'Search Conversation...' : 'Rechercher une conversation...'}
+                className="w-full bg-white/10 hover:bg-white/15 text-white text-sm rounded-full pl-10 pr-3 py-2.5 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
+                autoFocus={isSearchOpen}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Chats Section Header */}
+        <div className="px-3 pt-4 pb-2 flex items-center gap-2">
+          <MessageSquare className="w-5 h-5 text-emerald-400" />
+          <span className="text-white font-medium text-sm">{language === 'en' ? 'Chats' : 'Discussions'}</span>
         </div>
 
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar-dark px-2 py-2">
           {loading ? (
-            <div className="text-center text-gray-500 text-sm py-8">
+            <div className="text-center text-white/60 text-sm py-8">
               <p>{language === 'en' ? 'Loading conversations...' : 'Chargement des conversations...'}</p>
             </div>
           ) : error ? (
-            <div className="text-center text-red-400 text-sm py-8">
+            <div className="text-center text-red-300 text-sm py-8">
               <p>{language === 'en' ? 'Failed to load conversations' : 'Échec du chargement des conversations'}</p>
             </div>
           ) : (
             <>
               {Object.entries(groupedConversations).map(([dateLabel, convs]) => (
                 <div key={dateLabel} className="mb-4">
-                  <p className="text-xs text-gray-400 px-3 py-2 font-medium">{dateLabel}</p>
-                  <div className="space-y-1">
+                  <p className="text-xs text-white/50 px-3 py-2 font-medium">{dateLabel}</p>
+                  <div className="space-y-0.5">
                     {convs.map((conv) => (
                       <div
                         key={conv.id}
                         onClick={() => switchConversation(conv.id)}
-                        className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition ${
+                        className={`group relative flex items-center gap-2 px-3 py-3 rounded-lg cursor-pointer transition ${
                           conv.id === currentConversationId
-                            ? 'bg-gray-800 text-white'
-                            : 'text-gray-300 hover:bg-gray-800'
+                            ? 'bg-white/10 text-white'
+                            : 'text-white/80 hover:bg-white/5 hover:text-white'
                         }`}
                       >
                         {/* Web Search Icon */}
@@ -230,7 +292,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
                           className={`flex-shrink-0 p-1 rounded transition opacity-0 group-hover:opacity-100 ${
                             deletingId === conv.id
                               ? 'text-red-400 hover:text-red-300'
-                              : 'text-gray-400 hover:text-white'
+                              : 'text-white/60 hover:text-white'
                           }`}
                           title={deletingId === conv.id ? t.confirmDelete : t.deleteChat}
                         >
@@ -250,7 +312,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
               ))}
 
               {filteredConversations.length === 0 && !loading && !error && (
-                <div className="text-center text-gray-500 text-sm py-8">
+                <div className="text-center text-white/60 text-sm py-8">
                   <p>
                     {searchQuery
                       ? language === 'en'
@@ -265,34 +327,32 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-700 p-3 flex-shrink-0 space-y-3">
-          {/* Conversation Count */}
-          <p className="text-xs text-gray-400 text-center">
-            {searchQuery && filteredConversations.length !== conversations.length
-              ? `${filteredConversations.length} / ${conversations.length} ${t.chatCount}`
-              : `${conversations.length} ${t.chatCount}`}
-          </p>
-
+        <div className="border-t border-white/10 p-4 flex-shrink-0 space-y-4">
           {/* User Profile Button */}
           <button
             onClick={() => setIsProfileOpen(true)}
-            className="w-full bg-gradient-to-r from-blue-600 to-emerald-400 hover:from-blue-700 hover:to-emerald-500 text-white rounded-lg px-3 py-2.5 transition flex items-center gap-3 text-sm"
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full px-4 py-3 transition flex items-center gap-3 text-sm shadow-lg"
           >
-            <div className="w-8 h-8 bg-white/30 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.username.charAt(0).toUpperCase() || 'U')}
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/30">
+              {user?.full_name || user?.username ? (
+                <div className="w-full h-full bg-gradient-to-br from-blue-400 to-emerald-400 flex items-center justify-center text-sm font-bold">
+                  {user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.username.charAt(0).toUpperCase() || 'U')}
+                </div>
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-blue-400 to-emerald-400 flex items-center justify-center text-sm font-bold">
+                  U
+                </div>
+              )}
             </div>
             <div className="flex-1 text-left overflow-hidden">
-              <p className="font-medium truncate">{user?.full_name || user?.username || 'User'}</p>
-              <p className="text-xs text-white/80 truncate">@{user?.username || 'username'}</p>
+              <p className="font-semibold truncate text-white">{user?.full_name || user?.username || 'User'}</p>
+              <p className="text-xs text-white/90 truncate">{user?.email || `${user?.username}@example.com`}</p>
             </div>
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
           </button>
 
           {/* Branding text */}
-          <p className="text-xs text-gray-400 text-center">
-            {language === 'en' ? 'AI-Powered Chat by VAERDIA' : 'Chat IA par VAERDIA'}
+          <p className="text-xs text-white/60 text-center font-light">
+            {language === 'en' ? 'AI-Powered Chat by VALERIA' : 'Chat IA par VALERIA'}
           </p>
         </div>
       </div>

@@ -46,22 +46,23 @@ const EmptyState: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8">
-      <div className="max-w-md w-full text-center">
-        {/* Personalized greeting */}
-        <div className="mb-6">
-          <h2 
-            className="text-3xl font-bold"
-            style={{
-              background: 'linear-gradient(135deg, #48d1cc 0%, #1e90ff 50%, #4169e1 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            {greeting}
-          </h2>
+      <div className="max-w-2xl w-full text-center space-y-6">
+        {/* AURA Logo */}
+        <div className="flex justify-center mb-4">
+          <img 
+            src="/assets/aura_logo2.png" 
+            alt="AURA Logo" 
+            className="w-24 h-24 object-contain"
+          />
         </div>
 
+        {/* Dynamic Welcome Text - changes with each new chat */}
+        <h1 
+          className="text-3xl font-bold"
+          style={{ color: '#003A70' }}
+        >
+          {greeting}
+        </h1>
       </div>
     </div>
   );

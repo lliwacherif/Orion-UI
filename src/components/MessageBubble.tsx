@@ -131,13 +131,13 @@ const CodeBlock: React.FC<{ language: string; code: string }> = ({ language, cod
   };
 
   return (
-    <div className="my-4">
+    <div className="my-4 -mx-2 sm:mx-0">
       <div className="bg-gray-800 text-gray-100 rounded-lg overflow-hidden relative group">
-        <div className="bg-gray-700 px-4 py-2 text-xs text-gray-300 font-mono border-b border-gray-600 flex items-center justify-between">
-          <span>{language}</span>
+        <div className="bg-gray-700 px-3 sm:px-4 py-2 text-xs text-gray-300 font-mono border-b border-gray-600 flex items-center justify-between">
+          <span className="truncate">{language}</span>
           <button
             onClick={handleCopy}
-            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-600 rounded text-gray-300 hover:text-white"
+            className="transition-opacity duration-200 p-1 hover:bg-gray-600 rounded text-gray-300 hover:text-white flex-shrink-0 ml-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
             title={copied ? 'Copied!' : 'Copy code'}
           >
             {copied ? (
@@ -151,8 +151,8 @@ const CodeBlock: React.FC<{ language: string; code: string }> = ({ language, cod
             )}
           </button>
         </div>
-        <pre className="p-4 overflow-x-auto">
-          <code className="text-sm font-mono leading-relaxed whitespace-pre">
+        <pre className="p-3 sm:p-4 overflow-x-auto">
+          <code className="text-xs sm:text-sm font-mono leading-relaxed whitespace-pre">
             {code}
           </code>
         </pre>
@@ -216,10 +216,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
   };
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-[80%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-2 sm:px-0`}>
+      <div className={`max-w-[95%] sm:max-w-[85%] md:max-w-[80%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         <div
-          className={`px-4 py-3 rounded-2xl ${
+          className={`px-3 sm:px-4 py-3 rounded-2xl break-words overflow-hidden ${
             isUser
               ? 'bg-indigo-600 text-white rounded-br-md'
               : isError
@@ -228,7 +228,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
           }`}
         >
           {isAssistant ? (
-            <div className="prose prose-sm max-w-none">
+            <div className="prose prose-sm max-w-none overflow-hidden">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
@@ -256,7 +256,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
                   // Style tables
                   table({ children }) {
                     return (
-                      <div className="overflow-x-auto my-4">
+                      <div className="overflow-x-auto my-4 -mx-2 sm:mx-0">
                         <table className="min-w-full border border-gray-300 rounded-lg">
                           {children}
                         </table>
@@ -268,14 +268,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
                   },
                   th({ children }) {
                     return (
-                      <th className="px-4 py-2 text-left text-sm font-semibold text-gray-900 border-b border-gray-300">
+                      <th className="px-2 sm:px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-900 border-b border-gray-300 break-words">
                         {children}
                       </th>
                     );
                   },
                   td({ children }) {
                     return (
-                      <td className="px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
+                      <td className="px-2 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 border-b border-gray-200 break-words">
                         {children}
                       </td>
                     );
@@ -283,31 +283,34 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
                   // Style blockquotes
                   blockquote({ children }) {
                     return (
-                      <blockquote className="border-l-4 border-blue-500 pl-4 py-2 my-4 bg-blue-50 text-gray-700 italic">
+                      <blockquote className="border-l-4 border-blue-500 pl-3 sm:pl-4 py-2 my-4 bg-blue-50 text-gray-700 italic break-words">
                         {children}
                       </blockquote>
                     );
                   },
                   // Style lists
                   ul({ children }) {
-                    return <ul className="list-disc list-inside my-2 space-y-1">{children}</ul>;
+                    return <ul className="list-disc list-inside my-2 space-y-1 break-words">{children}</ul>;
                   },
                   ol({ children }) {
-                    return <ol className="list-decimal list-inside my-2 space-y-1">{children}</ol>;
+                    return <ol className="list-decimal list-inside my-2 space-y-1 break-words">{children}</ol>;
+                  },
+                  li({ children }) {
+                    return <li className="break-words">{children}</li>;
                   },
                   // Style headings
                   h1({ children }) {
-                    return <h1 className="text-xl font-bold my-3 text-gray-900">{children}</h1>;
+                    return <h1 className="text-lg sm:text-xl font-bold my-3 text-gray-900 break-words">{children}</h1>;
                   },
                   h2({ children }) {
-                    return <h2 className="text-lg font-semibold my-2 text-gray-900">{children}</h2>;
+                    return <h2 className="text-base sm:text-lg font-semibold my-2 text-gray-900 break-words">{children}</h2>;
                   },
                   h3({ children }) {
-                    return <h3 className="text-base font-semibold my-2 text-gray-900">{children}</h3>;
+                    return <h3 className="text-sm sm:text-base font-semibold my-2 text-gray-900 break-words">{children}</h3>;
                   },
                   // Style paragraphs
                   p({ children }) {
-                    return <p className="my-2 leading-relaxed">{children}</p>;
+                    return <p className="my-2 leading-relaxed break-words">{children}</p>;
                   },
                 }}
               >
