@@ -328,18 +328,18 @@ const OCRExtractor: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Language Selection, Document Type, and File Upload - Three Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Language Selection and Document Type */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Language Selection */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: '#003A70' }}>
               {t.languageDetection}
             </label>
             <select 
               value={selectedLanguage} 
               onChange={(e) => setSelectedLanguage(e.target.value)}
               disabled={ocrMutation.isLoading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-[#003A70]"
             >
               {languages.map(lang => (
                 <option key={lang.code} value={lang.code}>
@@ -351,49 +351,51 @@ const OCRExtractor: React.FC = () => {
 
           {/* Document Type Selection */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: '#003A70' }}>
               {t.documentType}
             </label>
             <select 
               value={documentType} 
               onChange={(e) => setDocumentType(e.target.value)}
               disabled={ocrMutation.isLoading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-[#003A70]"
             >
-              <option value="other">{t.docTypeOther}</option>
-              <option value="passport">{t.docTypePassport}</option>
-              <option value="id_card">{t.docTypeIdCard}</option>
+              <option value="other" className="text-[#003A70]">{t.docTypeOther}</option>
+              <option value="passport" className="text-[#003A70]">{t.docTypePassport}</option>
+              <option value="id_card" className="text-[#003A70]">{t.docTypeIdCard}</option>
             </select>
           </div>
+        </div>
 
-          {/* File Upload */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="text-center">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                disabled={ocrMutation.isLoading}
-                id="file-input"
-                className="hidden"
+        {/* File Upload */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <div className="flex flex-col items-center text-center">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              disabled={ocrMutation.isLoading}
+              id="file-input"
+              className="hidden"
+            />
+            <label 
+              htmlFor="file-input" 
+              className="w-full max-w-md flex flex-col items-center gap-4 px-8 py-8 border-2 border-dashed border-[#003A70] text-[#003A70] rounded-2xl cursor-pointer hover:bg-[#f0f6fb] transition-all duration-200 font-medium shadow-md bg-white"
+            >
+              <img 
+                src="/assets/upload-button.png" 
+                alt={t.chooseImage}
+                className="w-40 h-40 object-contain"
               />
-              <label 
-                htmlFor="file-input" 
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-emerald-400 text-white rounded-lg cursor-pointer hover:from-blue-700 hover:to-emerald-500 transition-all duration-200 font-medium"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                {t.chooseImage}
-              </label>
-              {selectedFile && (
-                <div className="mt-3">
-                  <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                    {selectedFile.name}
-                  </span>
-                </div>
-              )}
-            </div>
+              <span className="text-lg">{t.chooseImage}</span>
+            </label>
+            {selectedFile && (
+              <div className="mt-3">
+                <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                  {selectedFile.name}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -421,34 +423,44 @@ const OCRExtractor: React.FC = () => {
               handleExtractText();
             }}
             disabled={!selectedFile || ocrMutation.isLoading}
-            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-600 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+            className="group relative px-6 py-3 bg-gradient-to-r from-green-600/25 to-emerald-500/25 rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2 backdrop-blur-md border border-white/30 shadow-lg hover:shadow-xl"
           >
-            {ocrMutation.isLoading ? (
-              <>
-                <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                {t.processing}
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                {t.extractText}
-              </>
-            )}
+            <div className="relative flex items-center gap-2 z-10">
+              {ocrMutation.isLoading ? (
+                <>
+                  <svg className="w-5 h-5 animate-spin text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span className="text-sm font-medium text-emerald-700">{t.processing}</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span className="text-sm font-semibold bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent">
+                    {t.extractText}
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-green-400/25 to-emerald-400/25 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
           
           {(extractedText || selectedFile) && (
             <button 
               onClick={handleClear} 
-              className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg font-medium hover:from-red-700 hover:to-red-600 transition-all duration-200 flex items-center gap-2"
+              className="group relative px-6 py-3 bg-gradient-to-r from-red-600/25 to-red-500/25 rounded-full font-semibold transition-all duration-300 flex items-center gap-2 backdrop-blur-md border border-white/30 shadow-lg hover:shadow-xl"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              {t.clear}
+              <div className="relative flex items-center gap-2 z-10">
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span className="text-sm font-semibold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                  {t.clear}
+                </span>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-red-400/25 to-red-300/25 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           )}
         </div>
@@ -474,7 +486,7 @@ const OCRExtractor: React.FC = () => {
         {extractedText && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-green-600 to-emerald-500 px-6 py-4">
+            <div className="px-6 py-4" style={{ backgroundColor: '#003A70' }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -482,24 +494,22 @@ const OCRExtractor: React.FC = () => {
                   </svg>
                   <h3 className="text-lg font-semibold text-white">{t.extractedText}</h3>
                 </div>
-                <button 
-                  onClick={handleCopyText} 
-                  className="px-4 py-2 bg-white text-green-600 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2"
+                <button
+                  onClick={handleCopyText}
+                  className={`p-2.5 rounded-full transition-colors duration-200 ${
+                    copied ? 'bg-white text-[#003A70]' : 'bg-white/90 text-[#003A70] hover:bg-white'
+                  }`}
+                  aria-label={copied ? t.copied : t.copy}
+                  title={copied ? t.copied : t.copy}
                 >
                   {copied ? (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {t.copied}
-                    </>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      {t.copy}
-                    </>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
                   )}
                 </button>
               </div>
@@ -528,23 +538,30 @@ const OCRExtractor: React.FC = () => {
                 <button
                   onClick={handleSummarize}
                   disabled={aiMutation.isLoading}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                  className="group relative px-5 py-2.5 bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-md border border-white/30 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2"
                 >
-                  {aiMutation.isLoading ? (
-                    <>
-                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      {language === 'en' ? 'Processing...' : 'Traitement...'}
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      {language === 'en' ? 'Summarize with AI' : 'Résumer avec IA'}
-                    </>
-                  )}
+                  <div className="relative flex items-center gap-2 z-10">
+                    {aiMutation.isLoading ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span className="text-sm font-medium text-purple-700">
+                          {language === 'en' ? 'Processing...' : 'Traitement...'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="text-sm font-semibold bg-gradient-to-r from-purple-700 to-blue-700 bg-clip-text text-transparent">
+                          {language === 'en' ? 'Summarize with AI' : 'Résumer avec IA'}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
 
                 {/* Restyle Button */}
@@ -552,15 +569,20 @@ const OCRExtractor: React.FC = () => {
                   <button
                     onClick={() => setShowRestyleOptions(!showRestyleOptions)}
                     disabled={aiMutation.isLoading}
-                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                    className="group relative px-5 py-2.5 bg-gradient-to-r from-green-600/20 to-emerald-600/20 backdrop-blur-md border border-white/30 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
-                    </svg>
-                    {language === 'en' ? 'Restyle with AI' : 'Restyler avec IA'}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <div className="relative flex items-center gap-2 z-10">
+                      <svg className="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
+                      </svg>
+                      <span className="text-sm font-semibold bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent">
+                        {language === 'en' ? 'Restyle with AI' : 'Restyler avec IA'}
+                      </span>
+                      <svg className="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
 
                   {/* Restyle Options Dropdown - Fixed positioning */}
@@ -593,15 +615,20 @@ const OCRExtractor: React.FC = () => {
                   <button
                     onClick={() => setShowTranslateOptions(!showTranslateOptions)}
                     disabled={aiMutation.isLoading}
-                    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg font-medium hover:from-orange-700 hover:to-red-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                    className="group relative px-5 py-2.5 bg-gradient-to-r from-orange-600/20 to-red-600/20 backdrop-blur-md border border-white/30 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                    </svg>
-                    {language === 'en' ? 'Translate with AI' : 'Traduire avec IA'}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <div className="relative flex items-center gap-2 z-10">
+                      <svg className="w-4 h-4 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                      </svg>
+                      <span className="text-sm font-semibold bg-gradient-to-r from-orange-700 to-red-700 bg-clip-text text-transparent">
+                        {language === 'en' ? 'Translate with AI' : 'Traduire avec IA'}
+                      </span>
+                      <svg className="w-4 h-4 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
 
                   {/* Translate Options Dropdown - Fixed positioning */}

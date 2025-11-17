@@ -56,7 +56,7 @@ const AgentScheduleModal: React.FC<AgentScheduleModalProps> = ({
         setTaskName(autoName);
       }
     }
-  }, [isOpen, existingTask, initialInstructions]);
+  }, [isOpen, existingTask, initialInstructions, instructions]);
 
   const handleSave = () => {
     if (!instructions.trim()) {

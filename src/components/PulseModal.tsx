@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Activity, X, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -21,14 +21,7 @@ const PulseModal: React.FC<PulseModalProps> = ({ userId, isOpen, onClose }) => {
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch pulse when modal opens
-  useEffect(() => {
-    if (isOpen && userId) {
-      fetchPulse();
-    }
-  }, [isOpen, userId]);
-
-  const fetchPulse = async () => {
+  const fetchPulse = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -45,7 +38,14 @@ const PulseModal: React.FC<PulseModalProps> = ({ userId, isOpen, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  // Fetch pulse when modal opens
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchPulse();
+    }
+  }, [isOpen, userId, fetchPulse]);
 
   const handleRegeneratePulse = async () => {
     setRegenerating(true);
@@ -78,8 +78,19 @@ const PulseModal: React.FC<PulseModalProps> = ({ userId, isOpen, onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#48d1cc] to-[#1e90ff] text-white px-6 py-5">
-          <div className="flex justify-between items-center">
+        <div className="relative overflow-hidden text-white px-6 py-5 border-b border-white/20 shadow-lg">
+          {/* Gradient base (same colors as Pulse button) */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#48d1cc] to-[#1e90ff] pointer-events-none" />
+
+          {/* Glass overlay */}
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-xl pointer-events-none" />
+
+          {/* Soft glows */}
+          <div className="absolute -top-10 -right-6 w-32 h-32 bg-white/40 rounded-full blur-3xl opacity-70 pointer-events-none" />
+          <div className="absolute -bottom-16 left-0 w-48 h-48 bg-[#48d1cc]/40 rounded-full blur-3xl opacity-60 pointer-events-none" />
+
+          {/* Inner content */}
+          <div className="relative flex justify-between items-center">
             <div className="flex items-center gap-3">
               <Activity className="w-7 h-7" />
               <h2 className="text-2xl font-bold">{t.title}</h2>

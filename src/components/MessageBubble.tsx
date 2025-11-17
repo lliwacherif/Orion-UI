@@ -216,12 +216,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
   };
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-2 sm:px-0`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-2 sm:px-0 group`}>
       <div className={`max-w-[95%] sm:max-w-[85%] md:max-w-[80%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         <div
           className={`px-3 sm:px-4 py-3 rounded-2xl break-words overflow-hidden ${
             isUser
-              ? 'bg-indigo-600 text-white rounded-br-md'
+              ? 'bg-[#003A70]/80 text-white rounded-br-md backdrop-blur-md border border-white/20 shadow-lg shadow-blue-900/40 transform transition-transform duration-300 group-hover:-translate-y-0.5'
               : isError
               ? 'bg-red-50 text-red-800 border border-red-200 rounded-bl-md'
               : 'bg-gray-100 text-gray-900 rounded-bl-md'

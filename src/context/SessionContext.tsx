@@ -56,6 +56,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSession = (): SessionContextType => {
   const context = useContext(SessionContext);
   if (context === undefined) {

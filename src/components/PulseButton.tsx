@@ -18,9 +18,15 @@ const PulseButton: React.FC<PulseButtonProps> = ({ onClick }) => {
       title={t.buttonTooltip}
       aria-label={t.buttonTooltip}
     >
-      {/* Button */}
-      <div className="w-14 h-14 rounded-full bg-gradient-to-r from-[#48d1cc] to-[#1e90ff] shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center justify-center group-hover:scale-110">
-        <Activity className="w-7 h-7 text-white" />
+      {/* Glassy Floating Button */}
+      <div className="relative">
+        {/* Glow */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#48d1cc]/25 to-[#1e90ff]/25 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+        {/* Main Capsule Circle */}
+        <div className="relative w-14 h-14 rounded-full bg-gradient-to-r from-[#48d1cc]/25 to-[#1e90ff]/25 backdrop-blur-md border border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group-hover:scale-110">
+          <Activity className="w-7 h-7 text-white" />
+        </div>
       </div>
       
       {/* Tooltip */}

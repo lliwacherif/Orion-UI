@@ -239,6 +239,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useConversation = (): ConversationContextType => {
   const context = useContext(ConversationContext);
   if (context === undefined) {

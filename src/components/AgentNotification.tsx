@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { X, CheckCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -20,6 +20,13 @@ const AgentNotification: React.FC<AgentNotificationProps> = ({ notification, onC
   const { language } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onClose();
+    }, 300); // Wait for animation to complete
+  }, [onClose]);
+
   useEffect(() => {
     if (notification) {
       console.log('🔔 Showing agent notification:', notification.taskName);
@@ -36,14 +43,7 @@ const AgentNotification: React.FC<AgentNotificationProps> = ({ notification, onC
     } else {
       setIsVisible(false);
     }
-  }, [notification]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(() => {
-      onClose();
-    }, 300); // Wait for animation to complete
-  };
+  }, [notification, handleClose]);
 
   if (!notification) return null;
 

@@ -54,7 +54,7 @@ const ChatWindow: React.FC = () => {
     if (showCanvas && isSidebarOpen) {
       setIsSidebarOpen(false);
     }
-  }, [showCanvas]);
+  }, [showCanvas, isSidebarOpen]);
 
   // React Query mutation for web search
   const searchMutation = useMutation(
@@ -406,10 +406,10 @@ const ChatWindow: React.FC = () => {
       {currentModel === 'ocr' ? (
         <OCRExtractor />
       ) : (
-        <div className="flex-1 flex overflow-hidden">
-          {/* Chat section - takes full width when no canvas, or partial width when canvas is shown */}
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Chat section - takes full width on mobile, partial on desktop when canvas is shown */}
           <div className={`flex flex-col transition-all duration-500 ease-in-out overflow-hidden ${
-            showCanvas ? 'w-2/5' : 'w-full'
+            showCanvas ? 'w-full md:w-2/5' : 'w-full'
           }`}>
             {/* Messages */}
             <MessageList 
@@ -428,10 +428,22 @@ const ChatWindow: React.FC = () => {
             />
           </div>
 
-          {/* Canvas section - slides in from right */}
-          <div className={`flex flex-col transition-all duration-500 ease-in-out overflow-hidden ${
-            showCanvas ? 'w-3/5' : 'w-0'
-          }`}>
+          {/* Mobile backdrop overlay */}
+          {showCanvas && (
+            <div 
+              className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+              onClick={handleCloseCanvas}
+            />
+          )}
+
+          {/* Canvas section - bottom drawer on mobile, slides in from right on desktop */}
+          <div className={`
+            flex flex-col transition-all duration-500 ease-in-out overflow-hidden
+            md:relative md:flex-col
+            fixed inset-x-0 bottom-0 z-50
+            ${showCanvas ? 'md:w-3/5' : 'md:w-0'}
+            ${showCanvas ? 'h-[85vh] md:h-full' : 'h-0'}
+          `}>
             {showCanvas && (
               <DocumentCanvas
                 content={canvasContent}

@@ -191,48 +191,69 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
 
         {/* New Chat and Search Section */}
         <div className="p-3 border-b border-white/10 flex-shrink-0">
-          {/* New Chat Button with Search Icon */}
-          <div className="flex items-center gap-2 mb-2">
+          {/* New Chat + Glassy Search Inline */}
+          <div className="flex items-center justify-between gap-2 mb-2">
+            {/* New Chat Button */}
             <button
               onClick={handleNewChat}
-              className={`bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full py-2.5 transition flex items-center justify-center gap-2 text-sm font-medium shadow-lg ${
-                isSearchOpen ? 'w-10 h-10 p-0' : 'flex-1 px-4'
+              className={`group relative text-white rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm font-semibold shadow-lg hover:shadow-xl backdrop-blur-md border border-white/30 bg-gradient-to-r from-[#7CFC00]/25 via-[#48D1CC]/25 to-[#1E90FF]/25 overflow-hidden ${
+                isSearchOpen ? 'w-10 h-10 p-0 flex-shrink-0' : 'flex-1 px-5 py-3'
               }`}
               title={isSearchOpen ? t.newChat : undefined}
             >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              {!isSearchOpen && <span className="whitespace-nowrap">{t.newChat}</span>}
-            </button>
-            <button
-              onClick={handleToggleSearch}
-              className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition flex-shrink-0"
-              aria-label="Search"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Search Input - Animated */}
-          <div
-            className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              isSearchOpen ? 'max-h-12 opacity-100' : 'max-h-0 opacity-0'
-            }`}
-          >
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <Search className="w-4 h-4 text-white/60" />
+              <div className="relative z-10 flex items-center justify-center gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                {!isSearchOpen && (
+                  <span className="whitespace-nowrap bg-gradient-to-r from-[#7CFC00] via-[#48D1CC] to-[#1E90FF] bg-clip-text text-transparent">
+                    {t.newChat}
+                  </span>
+                )}
               </div>
-              <input
-                id="search-input"
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={language === 'en' ? 'Search Conversation...' : 'Rechercher une conversation...'}
-                className="w-full bg-white/10 hover:bg-white/15 text-white text-sm rounded-full pl-10 pr-3 py-2.5 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
-                autoFocus={isSearchOpen}
-              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#7CFC00]/20 via-[#48D1CC]/20 to-[#1E90FF]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+
+            {/* Search Button / Inline Glassy Search */}
+            <div className={`relative ${isSearchOpen ? 'flex-1' : 'flex-shrink-0'}`}>
+              {!isSearchOpen && (
+                <button
+                  onClick={handleToggleSearch}
+                  className="group relative w-10 h-10 p-0 text-white rounded-full transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl backdrop-blur-md border border-white/30 bg-gradient-to-r from-[#7CFC00]/30 via-[#48D1CC]/30 to-[#1E90FF]/30 overflow-hidden"
+                  aria-label="Search"
+                >
+                  <div className="relative z-10 flex items-center justify-center">
+                    <Search className="w-4 h-4 flex-shrink-0" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#7CFC00]/30 via-[#48D1CC]/30 to-[#1E90FF]/30 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                </button>
+              )}
+
+              {isSearchOpen && (
+                <div className="relative w-full">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <Search className="w-4 h-4 text-white/60" />
+                  </div>
+                  <input
+                    id="search-input"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={language === 'en' ? 'Search Conversation...' : 'Rechercher une conversation...'}
+                    className="w-full bg-white/10 hover:bg-white/15 text-white text-sm rounded-full pl-10 pr-9 py-2.5 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-emerald-400 backdrop-blur-md border border-white/20 transition-all duration-300"
+                    autoFocus={isSearchOpen}
+                  />
+                  <button
+                    onClick={handleToggleSearch}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-6 h-6 flex items-center justify-center transition"
+                    aria-label={language === 'en' ? 'Close search' : 'Fermer la recherche'}
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -331,9 +352,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
           {/* User Profile Button */}
           <button
             onClick={() => setIsProfileOpen(true)}
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-full px-4 py-3 transition flex items-center gap-3 text-sm shadow-lg"
+            className="group relative w-full text-white rounded-full px-4 py-3 transition-all duration-300 flex items-center gap-3 text-sm shadow-lg hover:shadow-xl backdrop-blur-md border border-white/30 bg-gradient-to-r from-[#7CFC00]/25 via-[#48D1CC]/25 to-[#1E90FF]/25 overflow-hidden"
           >
-            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/30">
+            <div className="relative z-10 flex items-center gap-3 w-full">
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/40 bg-white/10 backdrop-blur-sm">
               {user?.full_name || user?.username ? (
                 <div className="w-full h-full bg-gradient-to-br from-blue-400 to-emerald-400 flex items-center justify-center text-sm font-bold">
                   {user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.username.charAt(0).toUpperCase() || 'U')}
@@ -344,10 +366,16 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
                 </div>
               )}
             </div>
-            <div className="flex-1 text-left overflow-hidden">
-              <p className="font-semibold truncate text-white">{user?.full_name || user?.username || 'User'}</p>
-              <p className="text-xs text-white/90 truncate">{user?.email || `${user?.username}@example.com`}</p>
+              <div className="flex-1 text-left overflow-hidden">
+                <p className="font-semibold truncate bg-gradient-to-r from-white via-white to-sky-100 bg-clip-text text-transparent">
+                  {user?.full_name || user?.username || 'User'}
+                </p>
+                <p className="text-xs text-white/90 truncate">
+                  {user?.email || `${user?.username}@example.com`}
+                </p>
+              </div>
             </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#7CFC00]/20 via-[#48D1CC]/20 to-[#1E90FF]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
 
           {/* Branding text */}
