@@ -514,8 +514,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
               <button
                 onClick={handleSend}
                 disabled={disabled || (!message.trim() && attachments.length === 0 && (!ocrMode || !extractedOCRText)) || ocrMutation.isLoading}
-                className="flex-shrink-0 text-white p-3 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 shadow-md"
-                style={{ background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)' }}
+                className="group relative flex-shrink-0 text-white p-3 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-lg border border-white/25 shadow-lg shadow-cyan-900/30 bg-gradient-to-r from-[#00bcd4]/85 to-[#0097a7]/85 hover:from-[#00bcd4] hover:to-[#0097a7] overflow-hidden"
                 aria-label={t.sendMessage}
                 type="button"
               >
@@ -758,8 +757,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
             <button
               onClick={handleSend}
               disabled={disabled || (!message.trim() && attachments.length === 0 && (!ocrMode || !extractedOCRText)) || ocrMutation.isLoading}
-              className="flex-shrink-0 text-white p-3 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 shadow-md"
-              style={{ background: 'linear-gradient(135deg, #00bcd4 0%, #0097a7 100%)' }}
+              className="group relative flex-shrink-0 text-white p-3 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-lg border border-white/25 shadow-lg shadow-cyan-900/30 bg-gradient-to-r from-[#00bcd4]/85 to-[#0097a7]/85 hover:from-[#00bcd4] hover:to-[#0097a7] overflow-hidden"
               aria-label={t.sendMessage}
               type="button"
             >
