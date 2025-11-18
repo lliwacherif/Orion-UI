@@ -11,7 +11,7 @@ This folder contains a lightweight iframe-based chat widget that external applic
 | `embed.js` | Loader script that external apps include; it injects a floating launcher + iframe pointing to `widget.html`. |
 | `README.md` | This guide, including integration snippets for partner teams. |
 
-> Host these assets from the same origin as the main AURA UI bundle (e.g., `https://app.aura.ai/OpenCare/`).
+> Host these assets from the same origin as the main AURA UI bundle (e.g., `https://aura.vaeerdia.com/OpenCare/`).
 
 ---
 
@@ -19,23 +19,23 @@ This folder contains a lightweight iframe-based chat widget that external applic
 
 1. Copy the `OpenCare/` folder to your static assets directory (or keep it inside this repo and expose it via your CDN).
 2. Ensure `widget.html`, `widget.js`, and `embed.js` are publicly reachable, e.g.:
-   - `https://app.aura.ai/OpenCare/widget.html`
-   - `https://app.aura.ai/OpenCare/widget.js`
-   - `https://app.aura.ai/OpenCare/embed.js`
+   - `https://aura.vaeerdia.com/OpenCare/widget.html`
+   - `https://aura.vaeerdia.com/OpenCare/widget.js`
+   - `https://aura.vaeerdia.com/OpenCare/embed.js`
 3. The widget makes `fetch` calls to `${apiBaseUrl}/api/v1/orcha/chat-v2`. Configure CORS on the backend if the widget is hosted on another domain.
 
 ---
 
 ## 2. Embed script for partner apps
 
-External applications only need to drop the loader script and call `OpenCareChat.init`. Example (replace URLs with your deployment):
+External applications only need to drop the loader script and call `OpenCareChat.init`.
 
 ```html
-<script src="https://app.aura.ai/OpenCare/embed.js"></script>
+<script src="https://aura.vaeerdia.com/OpenCare/embed.js"></script>
 <script>
   OpenCareChat.init({
-    widgetUrl: 'https://app.aura.ai/OpenCare/widget.html',
-    apiBaseUrl: 'https://api.aura.ai',
+    widgetUrl: 'https://aura.vaeerdia.com/OpenCare/widget.html',
+    apiBaseUrl: 'https://aura.vaeerdia.com',
     tenantId: 'partner_xyz',
     userId: '42',                  // optional
     authToken: 'JWT_OR_CUSTOM',    // optional header for upstream auth
