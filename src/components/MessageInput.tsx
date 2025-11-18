@@ -310,11 +310,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
             {/* Search Mode Indicator */}
             {searchMode && (
               <div className="mb-4 flex items-center justify-center gap-2">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white px-4 py-2 rounded-full shadow-lg backdrop-blur-sm bg-opacity-90">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="group relative flex items-center gap-2 bg-gradient-to-r from-sky-400/20 to-blue-500/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <svg className="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                   </svg>
-                  <span className="font-medium">{language === 'en' ? 'Search' : 'Rechercher'}</span>
+                  <span className="font-medium bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">{language === 'en' ? 'Search' : 'Rechercher'}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-sky-400/10 to-blue-500/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <button
                   onClick={handleCancelSearch}
@@ -330,11 +331,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
             {/* Agent Mode Indicator */}
             {agentMode && (
               <div className="mb-4 flex items-center justify-center gap-2">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded-full shadow-lg backdrop-blur-sm bg-opacity-90">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="group relative flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className="font-medium">Agent</span>
+                  <span className="font-medium bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Agent</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-600/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <button
                   onClick={() => setAgentSearchMode(!agentSearchMode)}
@@ -363,11 +365,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
             {/* OCR Mode Indicator */}
             {ocrMode && (
               <div className="mb-4 flex items-center justify-center gap-2">
-                <div className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-4 py-2 rounded-full">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="group relative flex items-center gap-2 bg-gradient-to-r from-green-600/20 to-emerald-500/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span className="font-medium">OCR</span>
+                  <span className="font-medium bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">OCR</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 to-emerald-500/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                   {ocrMutation.isLoading && (
                     <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -383,7 +386,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                   <button
                     onClick={() => ocrFileInputRef.current?.click()}
                     disabled={disabled || ocrMutation.isLoading}
-                    className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border-2 border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 transition"
+                    className="group relative flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md border border-white/30 text-gray-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -423,10 +426,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
 
                   {/* Dropdown Menu */}
                   {showAttachmentMenu && (
-                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-white/85 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/30 py-1 z-50 overflow-hidden">
                       <button
                         onClick={handleAttachDocumentClick}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                        className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
                       >
                         <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -437,7 +440,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                       </button>
                       <button
                         onClick={handleOCRClick}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                        className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
                       >
                         <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -446,7 +449,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                       </button>
                       <button
                         onClick={handleAgentClick}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                        className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
                       >
                         <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -457,7 +460,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                       </button>
                       <button
                         onClick={handleSearchClick}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                        className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
                       >
                         <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
@@ -553,11 +556,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
           {/* Search Mode Indicator */}
           {searchMode && (
             <div className="mb-3 flex items-center gap-2">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white px-4 py-2 rounded-full text-sm shadow-lg backdrop-blur-sm bg-opacity-90">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="group relative flex items-center gap-2 bg-gradient-to-r from-sky-400/20 to-blue-500/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-full text-sm shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
-                <span className="font-medium">{language === 'en' ? 'Search' : 'Rechercher'}</span>
+                <span className="font-medium bg-gradient-to-r from-sky-600 to-blue-600 bg-clip-text text-transparent">{language === 'en' ? 'Search' : 'Rechercher'}</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-sky-400/10 to-blue-500/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <button
                 onClick={handleCancelSearch}
@@ -573,11 +577,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
           {/* Agent Mode Indicator */}
           {agentMode && (
             <div className="mb-3 flex items-center gap-2">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded-full text-sm shadow-lg backdrop-blur-sm bg-opacity-90">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="group relative flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-full text-sm shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="font-medium">Agent</span>
+                <span className="font-medium bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Agent</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-600/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <button
                 onClick={() => setAgentSearchMode(!agentSearchMode)}
@@ -606,11 +611,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
           {/* OCR Mode Indicator */}
           {ocrMode && (
             <div className="mb-3 flex items-center gap-2">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-500 text-white px-4 py-2 rounded-full text-sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="group relative flex items-center gap-2 bg-gradient-to-r from-green-600/20 to-emerald-500/20 backdrop-blur-md border border-white/30 px-4 py-2 rounded-full text-sm shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span className="font-medium">OCR</span>
+                <span className="font-medium bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">OCR</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 to-emerald-500/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                 {ocrMutation.isLoading && (
                   <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -626,7 +632,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                 <button
                   onClick={() => ocrFileInputRef.current?.click()}
                   disabled={disabled || ocrMutation.isLoading}
-                  className="flex items-center gap-2 px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 transition text-sm"
+                  className="group relative flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-md border border-white/30 text-gray-700 rounded-full text-sm shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -666,10 +672,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
 
                 {/* Dropdown Menu */}
                 {showAttachmentMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50">
+                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white/85 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/30 py-1 z-50 overflow-hidden">
                     <button
                       onClick={handleAttachDocumentClick}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                      className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
                     >
                       <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -680,7 +686,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                     </button>
                     <button
                       onClick={handleOCRClick}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                      className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
                     >
                       <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -689,7 +695,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                     </button>
                     <button
                       onClick={handleAgentClick}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                      className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
                     >
                       <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -700,7 +706,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                     </button>
                     <button
                       onClick={handleSearchClick}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-3 text-gray-700"
+                      className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
                     >
                       <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
