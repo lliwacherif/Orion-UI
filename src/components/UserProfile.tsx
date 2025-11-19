@@ -31,18 +31,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
   // Load stored memories from database (NEW API format)
   const loadStoredMemory = async () => {
     if (!user) return;
-    
+
     setIsLoadingStoredMemory(true);
     setShowStoredMemory(true);
-    
+
     try {
       console.log('🔍 Loading stored memories for user:', user.id);
       const response = await getMemory(user.id);
-      
+
       // Check if user has any memories (NEW FORMAT - array)
       if (response.memories && response.memories.length > 0) {
         console.log(`✅ Found ${response.total} memories`);
-        
+
         // Combine all memory contents into one string
         const combinedContent = response.memories
           .map(memory => {
@@ -53,9 +53,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
             return memory.content;
           })
           .join('\n\n---\n\n');
-        
+
         setStoredMemoryContent(combinedContent);
-        
+
         // Log memory details
         response.memories.forEach((memory, index) => {
           console.log(`Memory ${index + 1}:`, {
@@ -81,27 +81,27 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
   // Extract important memories based on last 3 conversations
   const analyzePersonality = async () => {
     if (!user) return;
-    
+
     setIsAnalyzing(true);
     setShowPersonalityAnalysis(true);
-    
+
     try {
       // Fetch fresh conversations for THIS USER ONLY (don't use cached state)
       console.log('🔍 Fetching conversations for user:', user.id);
       const userConversations = await getUserConversations(user.id);
       console.log('✅ Fetched', userConversations.length, 'conversations for user', user.id);
-      
+
       // Get last 3 conversations sorted by updated_at
       const sortedConversations = userConversations
         .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
         .slice(0, 3);
-      
+
       console.log('🧠 Extracting memory from', sortedConversations.length, 'conversations');
       console.log('📋 Conversation IDs:', sortedConversations.map(c => c.id));
-      
+
       // Fetch messages from each conversation
       const allUserMessages: string[] = [];
-      
+
       for (const conv of sortedConversations) {
         try {
           console.log('📖 Fetching messages from conversation', conv.id, 'for user', user.id);
@@ -114,61 +114,61 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
           console.error('Failed to fetch conversation', conv.id, error);
         }
       }
-      
+
       console.log('📝 Collected', allUserMessages.length, 'user messages');
-      
+
       if (allUserMessages.length === 0) {
-        setPersonalityAnalysis(language === 'en' 
+        setPersonalityAnalysis(language === 'en'
           ? 'Not enough messages yet. Start chatting so I can learn about you and remember important details!'
           : 'Pas assez de messages. Commencez à discuter pour que je puisse apprendre à vous connaître!');
         setIsAnalyzing(false);
         return;
       }
-      
+
       // Prepare the memory extraction prompt with user messages
       const messagesText = allUserMessages.join('\n---\n');
       const prompt = `Based on my recent messages, extract and remember the most important information about me. Focus on key facts, preferences, interests, work, goals, and any other significant details that would be useful to remember in future conversations. Present this as a clear summary of what you've learned about me:\n\n${messagesText}`;
-      
+
       // Call chat API for memory extraction
       const response = await chat({
         user_id: user.id.toString(),
         message: prompt,
         conversation_history: [],
       });
-      
+
       console.log('🎯 Memory API Response:', response);
       console.log('📝 Message field:', response.message);
       console.log('🗑️ Temporary conversation ID:', response.conversation_id);
-      
+
       // Extract the message from the response
-      const analysisText = response.message || (language === 'en' 
-        ? 'No memory available' 
+      const analysisText = response.message || (language === 'en'
+        ? 'No memory available'
         : 'Aucune mémoire disponible');
-      
+
       console.log('✅ Setting memory:', analysisText);
       setPersonalityAnalysis(analysisText);
-      
+
       // Save memory to backend database with new format
       try {
         console.log('💾 Saving memory to backend database...');
-        
+
         // Generate a title from the first line or first 50 chars
         const firstLine = analysisText.split('\n')[0];
         const title = firstLine.length > 50 ? firstLine.substring(0, 47) + '...' : firstLine;
-        
+
         await saveMemory(user.id, analysisText, {
           title: title,
           conversation_id: response.conversation_id || null,
           source: 'auto_extraction',
           tags: ['personality', 'preferences', 'auto-generated']
         });
-        
+
         console.log('✅ Memory saved to database with metadata');
       } catch (saveError) {
         console.error('Failed to save memory to database:', saveError);
         // Non-critical error, user still sees the memory
       }
-      
+
       // Delete the temporary conversation so it doesn't appear in history
       if (response.conversation_id) {
         try {
@@ -202,12 +202,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
   // Format time until reset
   const formatTimeUntilReset = (timeString: string) => {
     if (!timeString) return 'N/A';
-    
+
     // Parse "HH:MM:SS.microseconds" format
     const parts = timeString.split(':');
     const hours = parseInt(parts[0]);
     const minutes = parseInt(parts[1]);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     } else {
@@ -218,7 +218,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 z-40"
         onClick={onClose}
       />
@@ -227,7 +227,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
           {/* Header - Fixed */}
-          <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-emerald-400 text-white px-6 py-4 flex-shrink-0">
+          <div className="bg-gradient-to-r from-blue-600/80 via-blue-500/80 to-emerald-400/80 backdrop-blur-md text-white px-6 py-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">
                 {language === 'en' ? 'User Profile' : 'Profil Utilisateur'}
@@ -332,17 +332,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
                 </div>
               )}
 
-              {/* Plan Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
-                  {language === 'en' ? 'Plan' : 'Plan'}
-                </label>
-                <div className="bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
-                  <span className="inline-block px-3 py-1 bg-gradient-to-r from-blue-600 to-emerald-400 text-white rounded-full text-sm font-semibold uppercase">
-                    {user.plan_type}
-                  </span>
-                </div>
-              </div>
+
 
               {/* Session Info */}
               <div>
@@ -356,7 +346,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
                       {language === 'en' ? 'Active' : 'Active'}
                     </p>
                   </div>
-                  
+
                   {/* Token Usage */}
                   {tokenUsage && tokenUsage.tracking_enabled && (
                     <div className="pt-2 border-t border-green-200">
@@ -385,34 +375,19 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
               </div>
             </div>
 
-            {/* Additional Info */}
-            <div className="bg-blue-50 rounded-lg px-4 py-3 border border-blue-200">
-              <div className="flex items-start gap-2">
-                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm text-blue-700">
-                  {language === 'en' 
-                    ? 'Your conversations are private and secure.'
-                    : 'Vos conversations sont privées et sécurisées.'}
-                </p>
-              </div>
-            </div>
+
           </div>
 
           {/* Footer - Fixed at bottom */}
-          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 space-y-2 flex-shrink-0">
+          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex-shrink-0">
             <button
               onClick={logout}
-              className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition font-medium"
+              className="w-full group relative px-6 py-3 bg-gradient-to-r from-red-500/20 to-red-600/20 backdrop-blur-md border border-white/30 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              {language === 'en' ? 'Logout' : 'Déconnexion'}
-            </button>
-            <button
-              onClick={onClose}
-              className="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition font-medium"
-            >
-              {language === 'en' ? 'Close' : 'Fermer'}
+              <span className="font-semibold bg-gradient-to-r from-red-600 to-red-700 bg-clip-text text-transparent">
+                {language === 'en' ? 'Logout' : 'Déconnexion'}
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-red-600/10 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           </div>
         </div>
@@ -422,11 +397,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
       {showPersonalityAnalysis && (
         <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => !isAnalyzing && setShowPersonalityAnalysis(false)}
           />
-          
+
           {/* Modal */}
           <div className="relative bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col overflow-hidden border border-white/50">
             {/* Header */}
@@ -518,11 +493,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
       {showStoredMemory && (
         <div className="fixed inset-0 flex items-center justify-center z-[70] p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => !isLoadingStoredMemory && setShowStoredMemory(false)}
           />
-          
+
           {/* Modal */}
           <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
             {/* Header */}
@@ -549,10 +524,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
                   </svg>
                 </button>
               </div>
-              
+
               {/* Description */}
               <p className="text-sm text-white/90 mb-4">
-                {language === 'en' 
+                {language === 'en'
                   ? 'AURA tries to remember content from your recent chats, but may forget certain elements over time. Stored elements are never forgotten.'
                   : 'AURA s\'efforce de tenir compte du contenu de vos chats récents, mais peut oublier certains éléments au fil du temps. Les éléments mémorisés ne sont jamais oubliés.'}
                 {' '}
@@ -594,7 +569,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
                     {language === 'en' ? 'No memory stored yet' : 'Aucune mémoire enregistrée'}
                   </p>
                   <p className="text-gray-600 text-sm max-w-md">
-                    {language === 'en' 
+                    {language === 'en'
                       ? 'Generate your first memory using the Memory button, and it will be stored here for future reference.'
                       : 'Générez votre première mémoire en utilisant le bouton Mémoire, elle sera stockée ici pour référence future.'}
                   </p>

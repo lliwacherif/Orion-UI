@@ -16,6 +16,165 @@ interface ChatSidebarProps {
   tokenUsage?: TokenUsage | null;
 }
 
+// User Profile Button Component with Gooey Hover Expansion
+interface UserProfileButtonProps {
+  user: any;
+  language: string;
+  tokenUsage: TokenUsage | null;
+  onOpenProfile: () => void;
+}
+
+const UserProfileButton: React.FC<UserProfileButtonProps> = ({ user, language, tokenUsage, onOpenProfile }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState<number | null>(null);
+  const [longPressTimeout, setLongPressTimeout] = useState<number | null>(null);
+
+  const handleMouseEnter = () => {
+    const timeout = setTimeout(() => {
+      setIsExpanded(true);
+    }, 1000); // 1 second hover delay
+    setHoverTimeout(timeout);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    setIsExpanded(false);
+  };
+
+  // Mobile long press support
+  const handleTouchStart = () => {
+    const timeout = setTimeout(() => {
+      setIsExpanded(true);
+    }, 1000); // 1 second long press
+    setLongPressTimeout(timeout);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimeout) {
+      clearTimeout(longPressTimeout);
+      setLongPressTimeout(null);
+    }
+
+    // If not expanded, treat as click to open profile
+    if (!isExpanded) {
+      e.preventDefault();
+      onOpenProfile();
+    } else {
+      setIsExpanded(false);
+    }
+  };
+
+  const formatTokens = (count: number) => {
+    return count.toLocaleString();
+  };
+
+  return (
+    <button
+      onClick={() => {
+        // Only open profile on click if not in expansion state
+        if (!isExpanded) {
+          onOpenProfile();
+        }
+      }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="group relative w-full text-white rounded-full transition-all duration-500 ease-out flex flex-col text-sm shadow-lg hover:shadow-xl backdrop-blur-md border border-white/30 bg-gradient-to-r from-[#7CFC00]/25 via-[#48D1CC]/25 to-[#1E90FF]/25 overflow-hidden"
+      style={{
+        height: isExpanded ? '140px' : '60px',
+        filter: isExpanded ? 'contrast(1.1)' : 'none',
+        transition: 'height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease-out',
+      }}
+    >
+      {/* Gooey effect overlay */}
+      <div
+        className="absolute inset-0 rounded-full transition-all duration-700"
+        style={{
+          filter: isExpanded ? 'blur(8px)' : 'blur(0px)',
+          opacity: isExpanded ? 0.3 : 0,
+          background: 'radial-gradient(circle at center, rgba(72, 209, 204, 0.4), transparent)',
+        }}
+      />
+
+      {/* Main content */}
+      <div className={`relative z-10 px-4 transition-all duration-500 ${isExpanded ? 'py-3' : 'py-3'}`}>
+        <div className="flex items-center gap-3">
+          <div className={`rounded-full overflow-hidden flex-shrink-0 border-2 border-white/40 bg-white/10 backdrop-blur-sm transition-all duration-500 ${isExpanded ? 'w-12 h-12' : 'w-10 h-10'}`}>
+            {user?.full_name || user?.username ? (
+              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-emerald-400 flex items-center justify-center text-sm font-bold">
+                {user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.username.charAt(0).toUpperCase() || 'U')}
+              </div>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-400 to-emerald-400 flex items-center justify-center text-sm font-bold">
+                U
+              </div>
+            )}
+          </div>
+          <div className="flex-1 text-left overflow-hidden">
+            <p className="font-semibold truncate bg-gradient-to-r from-white via-white to-sky-100 bg-clip-text text-transparent">
+              {user?.full_name || user?.username || 'User'}
+            </p>
+            <p className={`text-xs text-white/90 truncate transition-opacity duration-300 ${isExpanded ? 'opacity-0' : 'opacity-100'}`}>
+              {user?.email || `${user?.username}@example.com`}
+            </p>
+          </div>
+        </div>
+
+        {/* Expanded info - Token Usage */}
+        <div
+          className="mt-3 space-y-2 transition-all duration-500"
+          style={{
+            opacity: isExpanded ? 1 : 0,
+            transform: isExpanded ? 'translateY(0)' : 'translateY(-10px)',
+            maxHeight: isExpanded ? '100px' : '0px',
+          }}
+        >
+          {tokenUsage && tokenUsage.tracking_enabled ? (
+            <>
+              {/* Divider */}
+              <div className="w-full h-px bg-white/20 backdrop-blur-sm" />
+
+              {/* Token info */}
+              <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-xs text-white/80">
+                      {language === 'en' ? 'Tokens Used' : 'Jetons Utilisés'}
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold bg-gradient-to-r from-emerald-300 to-sky-300 bg-clip-text text-transparent">
+                    {formatTokens(tokenUsage.current_usage)}
+                  </span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Divider */}
+              <div className="w-full h-px bg-white/20 backdrop-blur-sm" />
+
+              <div className="text-center text-xs text-white/60 py-1">
+                {language === 'en' ? 'Click to view profile' : 'Cliquez pour voir le profil'}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Hover glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#7CFC00]/20 via-[#48D1CC]/20 to-[#1E90FF]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    </button>
+  );
+};
+
+
 const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage }) => {
   const {
     conversations,
@@ -50,7 +209,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
 
       try {
         const response = await getTokenUsage(user.id.toString());
-        
+
         if (response.status === 'ok' && response.tracking_enabled) {
           setCurrentTokenUsage({
             current_usage: response.current_usage || 0,
@@ -111,7 +270,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-    
+
     if (diffInHours < 24) {
       return language === 'en' ? 'Today' : 'Aujourd\'hui';
     } else if (diffInHours < 48) {
@@ -129,7 +288,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
   // Check if a conversation is from an agent task
   const isAgentTaskConversation = (convTitle: string) => {
     const tasks = AgentTaskService.getAllTasks();
-    return tasks.some(task => 
+    return tasks.some(task =>
       convTitle.includes(task.taskName) || convTitle.includes(task.instructions.substring(0, 50))
     );
   };
@@ -166,18 +325,17 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
     <>
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full text-white transition-all duration-300 ease-in-out z-20 flex flex-col ${
-          isOpen ? 'w-64' : 'w-0'
-        } overflow-hidden`}
-        style={{ 
+        className={`fixed left-0 top-0 h-full text-white transition-all duration-300 ease-in-out z-20 flex flex-col ${isOpen ? 'w-64' : 'w-0'
+          } overflow-hidden`}
+        style={{
           background: 'linear-gradient(to bottom, #003a70 0%, #00294d 50%, #001f3d 100%)'
         }}
       >
         {/* Top Header with Logo and Menu */}
         <div className="p-4 border-b border-white/10 flex-shrink-0 flex items-center justify-between">
-          <img 
-            src="/assets/AURA_Icon.png" 
-            alt="AURA Logo" 
+          <img
+            src="/assets/AURA_Icon.png"
+            alt="AURA Logo"
             className="w-10 h-10 object-contain"
           />
           <button
@@ -196,9 +354,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
             {/* New Chat Button */}
             <button
               onClick={handleNewChat}
-              className={`group relative text-white rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm font-semibold shadow-lg hover:shadow-xl backdrop-blur-md border border-white/30 bg-gradient-to-r from-[#7CFC00]/25 via-[#48D1CC]/25 to-[#1E90FF]/25 overflow-hidden ${
-                isSearchOpen ? 'w-10 h-10 p-0 flex-shrink-0' : 'flex-1 px-5 py-3'
-              }`}
+              className={`group relative text-white rounded-full transition-all duration-300 flex items-center justify-center gap-2 text-sm font-semibold shadow-lg hover:shadow-xl backdrop-blur-md border border-white/30 bg-gradient-to-r from-[#7CFC00]/25 via-[#48D1CC]/25 to-[#1E90FF]/25 overflow-hidden ${isSearchOpen ? 'w-10 h-10 p-0 flex-shrink-0' : 'flex-1 px-5 py-3'
+                }`}
               title={isSearchOpen ? t.newChat : undefined}
             >
               <div className="relative z-10 flex items-center justify-center gap-2">
@@ -284,11 +441,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
                       <div
                         key={conv.id}
                         onClick={() => switchConversation(conv.id)}
-                        className={`group relative flex items-center gap-2 px-3 py-3 rounded-lg cursor-pointer transition ${
-                          conv.id === currentConversationId
-                            ? 'bg-white/10 text-white'
-                            : 'text-white/80 hover:bg-white/5 hover:text-white'
-                        }`}
+                        className={`group relative flex items-center gap-2 px-3 py-3 rounded-lg cursor-pointer transition ${conv.id === currentConversationId
+                          ? 'bg-white/10 text-white'
+                          : 'text-white/80 hover:bg-white/5 hover:text-white'
+                          }`}
                       >
                         {/* Web Search Icon */}
                         {isSearchConversation(conv.id) && (
@@ -310,11 +466,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
                         {/* Delete Button */}
                         <button
                           onClick={(e) => handleDelete(conv.id, e)}
-                          className={`flex-shrink-0 p-1 rounded transition opacity-0 group-hover:opacity-100 ${
-                            deletingId === conv.id
-                              ? 'text-red-400 hover:text-red-300'
-                              : 'text-white/60 hover:text-white'
-                          }`}
+                          className={`flex-shrink-0 p-1 rounded transition opacity-0 group-hover:opacity-100 ${deletingId === conv.id
+                            ? 'text-red-400 hover:text-red-300'
+                            : 'text-white/60 hover:text-white'
+                            }`}
                           title={deletingId === conv.id ? t.confirmDelete : t.deleteChat}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -349,34 +504,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
 
         {/* Footer */}
         <div className="border-t border-white/10 p-4 flex-shrink-0 space-y-4">
-          {/* User Profile Button */}
-          <button
-            onClick={() => setIsProfileOpen(true)}
-            className="group relative w-full text-white rounded-full px-4 py-3 transition-all duration-300 flex items-center gap-3 text-sm shadow-lg hover:shadow-xl backdrop-blur-md border border-white/30 bg-gradient-to-r from-[#7CFC00]/25 via-[#48D1CC]/25 to-[#1E90FF]/25 overflow-hidden"
-          >
-            <div className="relative z-10 flex items-center gap-3 w-full">
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-white/40 bg-white/10 backdrop-blur-sm">
-              {user?.full_name || user?.username ? (
-                <div className="w-full h-full bg-gradient-to-br from-blue-400 to-emerald-400 flex items-center justify-center text-sm font-bold">
-                  {user?.full_name ? user.full_name.charAt(0).toUpperCase() : (user?.username.charAt(0).toUpperCase() || 'U')}
-                </div>
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-400 to-emerald-400 flex items-center justify-center text-sm font-bold">
-                  U
-                </div>
-              )}
-            </div>
-              <div className="flex-1 text-left overflow-hidden">
-                <p className="font-semibold truncate bg-gradient-to-r from-white via-white to-sky-100 bg-clip-text text-transparent">
-                  {user?.full_name || user?.username || 'User'}
-                </p>
-                <p className="text-xs text-white/90 truncate">
-                  {user?.email || `${user?.username}@example.com`}
-                </p>
-              </div>
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-[#7CFC00]/20 via-[#48D1CC]/20 to-[#1E90FF]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          </button>
+          {/* User Profile Button with Gooey Hover Expansion */}
+          <UserProfileButton
+            user={user}
+            language={language}
+            tokenUsage={currentTokenUsage}
+            onOpenProfile={() => setIsProfileOpen(true)}
+          />
 
           {/* Branding text */}
           <p className="text-xs text-white/60 text-center font-light">
@@ -386,19 +520,13 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
       </div>
 
       {/* User Profile Modal */}
-      <UserProfile 
-        isOpen={isProfileOpen} 
+      <UserProfile
+        isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         tokenUsage={currentTokenUsage}
       />
 
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
-          onClick={onToggle}
-        />
-      )}
+
     </>
   );
 };

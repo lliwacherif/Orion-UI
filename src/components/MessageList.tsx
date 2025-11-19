@@ -24,15 +24,15 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, 
   }, [messages, isLoading]);
 
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
-      {messages.length === 0 && !isLoading && currentModel === 'chat' && (
+    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pb-32">
+      {messages.length === 0 && !isLoading && (currentModel === 'chat' || currentModel === 'opencare') && (
         <EmptyState />
       )}
 
       {messages.map((message, index) => (
         <React.Fragment key={message.id}>
-          <MessageBubble 
-            message={message} 
+          <MessageBubble
+            message={message}
             onRegenerate={() => onRegenerateMessage?.(index)}
           />
         </React.Fragment>

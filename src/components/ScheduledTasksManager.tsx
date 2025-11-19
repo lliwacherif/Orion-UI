@@ -73,18 +73,18 @@ const ScheduledTasksManager: React.FC<ScheduledTasksManagerProps> = ({ isOpen, o
     <>
       <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
         {/* Backdrop */}
-        <div 
+        <div
           className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           onClick={onClose}
         />
-        
+
         {/* Modal */}
         <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600 text-white px-6 py-5">
+          <div className="bg-gradient-to-r from-purple-500/80 via-purple-600/80 to-indigo-600/80 backdrop-blur-md text-white px-6 py-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center">
                   <Calendar className="w-6 h-6" />
                 </div>
                 <div>
@@ -96,9 +96,9 @@ const ScheduledTasksManager: React.FC<ScheduledTasksManagerProps> = ({ isOpen, o
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={onClose}
-                className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition"
+                className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -116,7 +116,7 @@ const ScheduledTasksManager: React.FC<ScheduledTasksManagerProps> = ({ isOpen, o
                   {language === 'en' ? 'No scheduled tasks' : 'Aucune tâche planifiée'}
                 </h3>
                 <p className="text-gray-500 text-sm">
-                  {language === 'en' 
+                  {language === 'en'
                     ? 'Create your first automated task from the Agent menu'
                     : 'Créez votre première tâche automatisée depuis le menu Agent'
                   }
@@ -125,29 +125,28 @@ const ScheduledTasksManager: React.FC<ScheduledTasksManagerProps> = ({ isOpen, o
             ) : (
               <div className="space-y-3">
                 {tasks.map((task) => (
-                  <div 
+                  <div
                     key={task.id}
-                    className={`bg-gray-50 border rounded-xl p-4 transition-all ${
-                      task.enabled 
-                        ? 'border-purple-200 hover:border-purple-300 hover:shadow-md' 
+                    className={`bg-white/60 backdrop-blur-sm border rounded-xl p-4 transition-all ${task.enabled
+                        ? 'border-purple-200 hover:border-purple-300 hover:shadow-md'
                         : 'border-gray-200 opacity-60'
-                    }`}
+                      }`}
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       {/* Task Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                           <div className="flex items-center gap-2">
                             {task.isSearch && (
                               <span title={language === 'en' ? 'Web search task' : 'Tâche de recherche Web'}>
                                 <Globe className="w-4 h-4 text-sky-500" />
                               </span>
                             )}
-                            <h3 className="font-semibold text-gray-900 truncate">
+                            <h3 className="font-semibold text-gray-900">
                               {task.taskName}
                             </h3>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                               <Clock className="w-3 h-3" />
                               {task.time}
@@ -174,17 +173,16 @@ const ScheduledTasksManager: React.FC<ScheduledTasksManagerProps> = ({ isOpen, o
                         )}
                       </div>
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
+                      {/* Actions - Responsive layout */}
+                      <div className="flex md:flex-col gap-2 justify-end">
                         {/* Enable/Disable Toggle */}
                         <button
                           onClick={() => handleToggleTask(task)}
-                          className={`p-2 rounded-lg transition ${
-                            task.enabled
+                          className={`flex-1 md:flex-none px-4 md:px-3 py-2 rounded-lg transition text-sm font-medium flex items-center justify-center gap-2 ${task.enabled
                               ? 'bg-green-100 text-green-700 hover:bg-green-200'
                               : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                          }`}
-                          title={task.enabled 
+                            }`}
+                          title={task.enabled
                             ? (language === 'en' ? 'Disable' : 'Désactiver')
                             : (language === 'en' ? 'Enable' : 'Activer')
                           }
@@ -194,24 +192,32 @@ const ScheduledTasksManager: React.FC<ScheduledTasksManagerProps> = ({ isOpen, o
                               <div className="w-2 h-2 bg-green-700 rounded-full" />
                             )}
                           </div>
+                          <span className="md:hidden">
+                            {task.enabled
+                              ? (language === 'en' ? 'Enabled' : 'Activé')
+                              : (language === 'en' ? 'Disabled' : 'Désactivé')
+                            }
+                          </span>
                         </button>
 
                         {/* Edit */}
                         <button
                           onClick={() => handleEditTask(task)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                          className="flex-1 md:flex-none px-4 md:px-3 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition text-sm font-medium flex items-center justify-center gap-2"
                           title={language === 'en' ? 'Edit' : 'Modifier'}
                         >
                           <Edit2 className="w-4 h-4" />
+                          <span className="md:hidden">{language === 'en' ? 'Edit' : 'Modifier'}</span>
                         </button>
 
                         {/* Delete */}
                         <button
                           onClick={() => handleDeleteTask(task.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          className="flex-1 md:flex-none px-4 md:px-3 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition text-sm font-medium flex items-center justify-center gap-2"
                           title={language === 'en' ? 'Delete' : 'Supprimer'}
                         >
                           <Trash2 className="w-4 h-4" />
+                          <span className="md:hidden">{language === 'en' ? 'Delete' : 'Supprimer'}</span>
                         </button>
                       </div>
                     </div>
@@ -222,16 +228,16 @@ const ScheduledTasksManager: React.FC<ScheduledTasksManagerProps> = ({ isOpen, o
           </div>
 
           {/* Footer */}
-          <div className="border-t bg-gray-50 px-6 py-4 flex justify-between items-center">
+          <div className="border-t bg-white/60 backdrop-blur-sm px-6 py-4 flex justify-between items-center">
             <p className="text-sm text-gray-600">
-              {tasks.length} {tasks.length === 1 
+              {tasks.length} {tasks.length === 1
                 ? (language === 'en' ? 'task' : 'tâche')
                 : (language === 'en' ? 'tasks' : 'tâches')
               }
             </p>
             <button
               onClick={onClose}
-              className="px-5 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
+              className="px-5 py-2 text-gray-700 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-lg hover:bg-white transition font-medium text-sm"
             >
               {language === 'en' ? 'Close' : 'Fermer'}
             </button>

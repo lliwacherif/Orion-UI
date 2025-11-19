@@ -1,7 +1,7 @@
 // @refresh reset
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type ModelType = 'chat' | 'doc' | 'vision' | 'ocr';
+export type ModelType = 'chat' | 'doc' | 'vision' | 'ocr' | 'opencare';
 
 interface ModelContextType {
   currentModel: ModelType;

@@ -6,7 +6,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useConversation } from '../context/ConversationContext';
 import { useModel } from '../context/ModelContext';
 import { chat, webSearch } from '../api/orcha';
-import type { Attachment, ChatRequest, TokenUsage, WebSearchRequest } from '../types/orcha';
+import type { Attachment, ChatRequest, TokenUsage, WebSearchRequest, ChatMessage } from '../types/orcha';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import OCRExtractor from './OCRExtractor';
@@ -23,13 +23,14 @@ const ChatWindow: React.FC = () => {
   const { session } = useSession();
   const { user } = useAuth();
   const { language, toggleLanguage } = useLanguage();
-  const { 
+  const {
     currentConversationId,
     currentConversation,
-    messages, 
+    messages,
     refreshConversations,
     refreshMessages,
-    updateConversationTitle
+    updateConversationTitle,
+    addMessage
   } = useConversation();
   const { currentModel } = useModel();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -41,12 +42,12 @@ const ChatWindow: React.FC = () => {
   const [agentInstructions, setAgentInstructions] = useState('');
   const [agentNotification, setAgentNotification] = useState<AgentNotificationData | null>(null);
 
-  console.log('🔍 ChatWindow render:', { 
-    user: !!user, 
-    session: !!session, 
-    currentConversationId, 
+  console.log('🔍 ChatWindow render:', {
+    user: !!user,
+    session: !!session,
+    currentConversationId,
     messagesCount: messages.length,
-    currentModel 
+    currentModel
   });
 
   // Effect to manage sidebar when canvas opens
@@ -64,7 +65,7 @@ const ChatWindow: React.FC = () => {
         console.log('✅ Web search mutation success');
         console.log('🔍 Search query:', data.search_query);
         console.log('🔍 Results count:', data.results_count);
-        
+
         // Update token usage from search response
         if (data.token_usage && data.token_usage.tracking_enabled) {
           setTokenUsage(data.token_usage);
@@ -103,7 +104,7 @@ const ChatWindow: React.FC = () => {
         console.log('✅ Chat mutation success');
         console.log('🔍 Checking for token_usage in response...');
         console.log('🔍 data.token_usage exists?', !!data.token_usage);
-        
+
         if (data.token_usage) {
           console.log('📊 TOKEN USAGE DATA RECEIVED:');
           console.log('  - tracking_enabled:', data.token_usage.tracking_enabled);
@@ -115,7 +116,7 @@ const ChatWindow: React.FC = () => {
           console.error('❌ NO TOKEN USAGE DATA IN RESPONSE!');
           console.log('Full response:', JSON.stringify(data, null, 2));
         }
-        
+
         // ✅ Update token usage in real-time (matches backend example)
         if (data.token_usage && data.token_usage.tracking_enabled) {
           console.log('✅ UPDATING TOKEN STATE:', data.token_usage.current_usage);
@@ -147,7 +148,7 @@ const ChatWindow: React.FC = () => {
       onError: (error: any) => {
         console.error('❌ Chat mutation error:', error);
         console.error('Error response:', error.response?.data);
-        
+
         // Refresh conversations to get updated state
         refreshConversations();
       },
@@ -189,10 +190,10 @@ const ChatWindow: React.FC = () => {
     if (shouldAutoName && currentConversationId) {
       try {
         // Generate a title from the first message (max 50 chars)
-        const autoTitle = message.length > 50 
-          ? message.substring(0, 47) + '...' 
+        const autoTitle = message.length > 50
+          ? message.substring(0, 47) + '...'
           : message;
-        
+
         console.log('🏷️ Auto-naming conversation:', autoTitle);
         await updateConversationTitle(currentConversationId, autoTitle);
       } catch (error) {
@@ -200,6 +201,18 @@ const ChatWindow: React.FC = () => {
         // Continue anyway, naming is not critical
       }
     }
+
+    // Optimistically add user message to UI
+    const tempMessage: ChatMessage = {
+      id: -Date.now(), // Temporary negative ID to avoid collision
+      role: 'user',
+      content: message,
+      attachments: attachments,
+      token_count: null,
+      model_used: null,
+      created_at: new Date().toISOString()
+    };
+    addMessage(tempMessage);
 
     // Call ORCHA chat endpoint
     chatMutation.mutate(chatRequest);
@@ -209,7 +222,7 @@ const ChatWindow: React.FC = () => {
   // Handle regenerating a message (when user clicks reload icon on assistant message)
   const handleRegenerateMessage = (messageIndex: number) => {
     const message = messages[messageIndex];
-    
+
     // Only regenerate assistant messages
     if (message.role !== 'assistant') {
       console.warn('Can only regenerate assistant messages');
@@ -231,7 +244,7 @@ const ChatWindow: React.FC = () => {
     }
 
     const userMessage = messages[userMessageIndex];
-    
+
     // Resend the user message
     console.log('🔄 Regenerating response for message:', userMessage.content);
     handleSendMessage(
@@ -265,14 +278,14 @@ const ChatWindow: React.FC = () => {
     setShowAgentModal(false);
     setAgentInstructions('');
     sessionStorage.removeItem('agent_is_search');
-    
+
     // Show confirmation
-    const taskType = task.isSearch 
+    const taskType = task.isSearch
       ? (language === 'en' ? 'search task' : 'tâche de recherche')
       : (language === 'en' ? 'task' : 'tâche');
     alert(
-      language === 'en' 
-        ? `Agent ${taskType} "${task.taskName}" scheduled successfully!` 
+      language === 'en'
+        ? `Agent ${taskType} "${task.taskName}" scheduled successfully!`
         : `${taskType} d'agent "${task.taskName}" planifiée avec succès !`
     );
   };
@@ -296,10 +309,10 @@ const ChatWindow: React.FC = () => {
     if (shouldAutoName && currentConversationId) {
       try {
         // Generate a title from the search query (max 50 chars)
-        const autoTitle = query.length > 50 
-          ? query.substring(0, 47) + '...' 
+        const autoTitle = query.length > 50
+          ? query.substring(0, 47) + '...'
           : query;
-        
+
         console.log('🏷️ Auto-naming search conversation:', autoTitle);
         await updateConversationTitle(currentConversationId, autoTitle);
       } catch (error) {
@@ -331,17 +344,16 @@ const ChatWindow: React.FC = () => {
   return (
     <>
       {/* Sidebar with token tracking */}
-      <ChatSidebar 
-        isOpen={isSidebarOpen} 
+      <ChatSidebar
+        isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         tokenUsage={tokenUsage}
       />
 
       {/* Main Content */}
       <div
-        className={`h-screen flex flex-col bg-white transition-all duration-300 ${
-          isSidebarOpen ? 'md:ml-64' : 'ml-0'
-        }`}
+        className={`h-screen flex flex-col bg-white transition-all duration-300 relative ${isSidebarOpen ? 'md:ml-64' : 'ml-0'
+          }`}
       >
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-3 shadow-sm">
@@ -372,88 +384,92 @@ const ChatWindow: React.FC = () => {
                 title={language === 'en' ? 'Switch to French' : 'Passer à l\'anglais'}
               >
                 <span className="text-sm font-semibold">{language === 'en' ? 'English' : 'Français'}</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
               </button>
             </div>
           </div>
         </div>
 
-      {/* Info banner */}
-      {tokenUsage && tokenUsage.tracking_enabled && (
-        <div className="bg-blue-50 border-b border-blue-100 px-6 py-3">
-          <div className="flex items-center justify-end gap-4">
-            {/* Token Usage Badge */}
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-blue-200">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm font-semibold text-blue-900">
-                {tokenUsage.current_usage.toLocaleString()}
-              </span>
-              {tokenUsage.tokens_added > 0 && (
-                <span className="text-xs text-green-600 font-medium">
-                  +{tokenUsage.tokens_added}
-                </span>
-              )}
+        {/* Info banner - Floating Capsule Style */}
+        {tokenUsage && tokenUsage.tracking_enabled && (
+          <div className="absolute top-20 right-6 z-10 pointer-events-none">
+            <div className="flex items-center justify-end">
+              {/* Token Usage Badge - Glassy Style */}
+              <div className="group relative px-4 py-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 backdrop-blur-md border border-blue-200/50 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl pointer-events-auto">
+                <div className="flex items-center gap-2 relative z-10">
+                  <svg className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm font-bold bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                    {tokenUsage.current_usage.toLocaleString()}
+                  </span>
+                  {tokenUsage.tokens_added > 0 && (
+                    <span className="text-xs text-green-600 font-medium bg-green-50/50 px-1.5 py-0.5 rounded-full border border-green-200/50">
+                      +{tokenUsage.tokens_added}
+                    </span>
+                  )}
+                </div>
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-cyan-500/5 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Render different interface based on model */}
-      {currentModel === 'ocr' ? (
-        <OCRExtractor />
-      ) : (
-        <div className="flex-1 flex overflow-hidden relative">
-          {/* Chat section - takes full width on mobile, partial on desktop when canvas is shown */}
-          <div className={`flex flex-col transition-all duration-500 ease-in-out overflow-hidden ${
-            showCanvas ? 'w-full md:w-2/5' : 'w-full'
-          }`}>
-            {/* Messages */}
-            <MessageList 
-              messages={messages} 
-              isLoading={chatMutation.isLoading || searchMutation.isLoading}
-              onRegenerateMessage={handleRegenerateMessage}
-            />
+        {/* Render different interface based on model */}
+        {currentModel === 'ocr' ? (
+          <OCRExtractor />
+        ) : (
+          <div className="flex-1 flex overflow-hidden relative">
+            {/* Chat section - takes full width on mobile, partial on desktop when canvas is shown */}
+            <div className={`flex flex-col transition-all duration-500 ease-in-out overflow-hidden ${showCanvas ? 'w-full md:w-2/5' : 'w-full'
+              }`}>
+              {/* Messages */}
+              <MessageList
+                messages={messages}
+                isLoading={chatMutation.isLoading || searchMutation.isLoading}
+                onRegenerateMessage={handleRegenerateMessage}
+              />
 
-            {/* Input */}
-            <MessageInput
-              onSendMessage={handleSendMessage}
-              onScheduleAgent={handleScheduleAgent}
-              onWebSearch={handleWebSearch}
-              disabled={chatMutation.isLoading || searchMutation.isLoading}
-              hasMessages={messages.length > 0}
-            />
-          </div>
+              {/* Input */}
+              <div className="absolute bottom-0 left-0 right-0 z-10 md:z-20 pointer-events-none">
+                <div className="pointer-events-auto">
+                  <MessageInput
+                    onSendMessage={handleSendMessage}
+                    onScheduleAgent={handleScheduleAgent}
+                    onWebSearch={handleWebSearch}
+                    disabled={chatMutation.isLoading || searchMutation.isLoading}
+                    hasMessages={messages.length > 0}
+                  />
+                </div>
+              </div>
+            </div>
 
-          {/* Mobile backdrop overlay */}
-          {showCanvas && (
-            <div 
-              className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
-              onClick={handleCloseCanvas}
-            />
-          )}
+            {/* Mobile backdrop overlay */}
+            {showCanvas && (
+              <div
+                className="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+                onClick={handleCloseCanvas}
+              />
+            )}
 
-          {/* Canvas section - bottom drawer on mobile, slides in from right on desktop */}
-          <div className={`
+            {/* Canvas section - bottom drawer on mobile, slides in from right on desktop */}
+            <div className={`
             flex flex-col transition-all duration-500 ease-in-out overflow-hidden
             md:relative md:flex-col
             fixed inset-x-0 bottom-0 z-50
             ${showCanvas ? 'md:w-3/5' : 'md:w-0'}
             ${showCanvas ? 'h-[85vh] md:h-full' : 'h-0'}
           `}>
-            {showCanvas && (
-              <DocumentCanvas
-                content={canvasContent}
-                onClose={handleCloseCanvas}
-                onContentChange={handleCanvasContentChange}
-              />
-            )}
+              {showCanvas && (
+                <DocumentCanvas
+                  content={canvasContent}
+                  onClose={handleCloseCanvas}
+                  onContentChange={handleCanvasContentChange}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
 
       {/* Pulse Feature */}

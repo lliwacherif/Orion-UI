@@ -13,7 +13,7 @@ export const translations = {
       demoText: 'AI Powered Solution by VAERDIA',
       required: '*',
     },
-    
+
     // Chat window
     chat: {
       title: 'AURA',
@@ -24,13 +24,13 @@ export const translations = {
       infoBannerTitle: 'This UI calls only',
       infoBannerText: 'Messages are sent to ORCHA, which returns a routing decision with the recommended endpoint and prepared payload. The "Call Recommended Endpoint" button is a placeholder (see TODO in src/api/orcha.ts).',
     },
-    
+
     // Message list
     messages: {
       emptyTitle: 'No messages yet',
       emptySubtitle: 'Send a message to see AURA in action',
     },
-    
+
     // Message input
     input: {
       placeholder: 'Type a message...',
@@ -49,7 +49,7 @@ export const translations = {
       fileSizeTooLarge: 'File size must be less than 10MB',
       failedToProcess: 'Failed to process image',
     },
-    
+
     // Routing message
     routing: {
       title: 'ORCHA Routing Decision',
@@ -69,7 +69,7 @@ export const translations = {
       yes: 'Yes',
       no: 'No',
     },
-    
+
     // Badges
     badges: {
       ocr: 'OCR',
@@ -77,7 +77,7 @@ export const translations = {
       chat: 'CHAT',
       api: 'API',
     },
-    
+
     // Assistant message
     assistant: {
       sources: 'Sources:',
@@ -142,8 +142,18 @@ export const translations = {
       metadataMessages: 'Messages',
       metadataNextUpdate: 'Next Update',
     },
+
+    // Model Selector
+    modelSelector: {
+      title: 'Models',
+    },
+
+    // OpenCare
+    openCare: {
+      welcome: 'I am AURA, an advanced assistant specialized in insurance and finance topics—health insurance, FinTech, risk management, and compliant financial advice. I provide precise, professional insights while staying concise and analytical. How can I assist you today?',
+    },
   },
-  
+
   fr: {
     // Login page
     login: {
@@ -158,7 +168,7 @@ export const translations = {
       demoText: 'Solution IA Propulsée par VAERDIA',
       required: '*',
     },
-    
+
     // Chat window
     chat: {
       title: 'AURA',
@@ -169,13 +179,13 @@ export const translations = {
       infoBannerTitle: 'Cette interface appelle uniquement',
       infoBannerText: 'Les messages sont envoyés à ORCHA, qui retourne une décision de routage avec le point de terminaison recommandé et la charge utile préparée. Le bouton "Appeler le point de terminaison recommandé" est un espace réservé (voir TODO dans src/api/orcha.ts).',
     },
-    
+
     // Message list
     messages: {
       emptyTitle: 'Aucun message pour le moment',
       emptySubtitle: 'Envoyez un message pour voir AURA en action',
     },
-    
+
     // Message input
     input: {
       placeholder: 'Tapez un message...',
@@ -194,7 +204,7 @@ export const translations = {
       fileSizeTooLarge: 'La taille du fichier doit être inférieure à 10 Mo',
       failedToProcess: 'Échec du traitement de l\'image',
     },
-    
+
     // Routing message
     routing: {
       title: 'Décision de Routage ORCHA',
@@ -214,7 +224,7 @@ export const translations = {
       yes: 'Oui',
       no: 'Non',
     },
-    
+
     // Badges
     badges: {
       ocr: 'OCR',
@@ -222,7 +232,7 @@ export const translations = {
       chat: 'CHAT',
       api: 'API',
     },
-    
+
     // Assistant message
     assistant: {
       sources: 'Sources :',
@@ -286,6 +296,16 @@ export const translations = {
       metadataConversations: 'Conversations',
       metadataMessages: 'Messages',
       metadataNextUpdate: 'Prochaine Mise à Jour',
+    },
+
+    // Model Selector
+    modelSelector: {
+      title: 'Modèles',
+    },
+
+    // OpenCare
+    openCare: {
+      welcome: 'Bienvenue, je suis AURA. Je vous assiste sur OpenCare pour que tout soit fluide et agréable. Comment puis-je vous être utile aujourd’hui ? ',
     },
   },
 };

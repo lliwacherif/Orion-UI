@@ -2,14 +2,21 @@ import React, { useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useConversation } from '../context/ConversationContext';
+import { useModel } from '../context/ModelContext';
+import { translations } from '../translations';
 
 const EmptyState: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { currentConversation } = useConversation();
+  const { currentModel } = useModel();
 
   // Select greeting based on conversation ID to ensure consistency within a conversation
   const greeting = useMemo(() => {
+    if (currentModel === 'opencare') {
+      return translations[language].openCare.welcome;
+    }
+
     // 8 different greeting templates
     const greetings = {
       en: [
@@ -41,23 +48,23 @@ const EmptyState: React.FC = () => {
     // Use full_name if available, otherwise username, otherwise fallback
     const userName = user?.full_name || user?.username || (language === 'en' ? 'there' : 'toi');
     return templates[index](userName);
-  }, [language, currentConversation?.id, user?.full_name, user?.username]);
+  }, [language, currentConversation?.id, user?.full_name, user?.username, currentModel]);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8">
       <div className="max-w-2xl w-full text-center space-y-6">
         {/* AURA Logo */}
         <div className="flex justify-center mb-4">
-          <img 
-            src="/assets/aura_logo2.png" 
-            alt="AURA Logo" 
+          <img
+            src="/assets/aura_logo2.png"
+            alt="AURA Logo"
             className="w-24 h-24 object-contain"
           />
         </div>
 
         {/* Dynamic Welcome Text - changes with each new chat */}
-        <h1 
-          className="text-3xl font-bold"
+        <h1
+          className={`font-bold ${currentModel === 'opencare' ? 'text-xl leading-relaxed' : 'text-3xl'}`}
           style={{ color: '#003A70' }}
         >
           {greeting}

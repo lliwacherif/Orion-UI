@@ -22,22 +22,22 @@ const parseMarkdownBold = (text: string) => {
     if (match.index > lastIndex) {
       parts.push(text.substring(lastIndex, match.index));
     }
-    
+
     // Add bold text
     parts.push(
       <strong key={`bold-${keyCounter++}`} className="font-bold">
         {match[1]}
       </strong>
     );
-    
+
     lastIndex = regex.lastIndex;
   }
-  
+
   // Add remaining text after last match
   if (lastIndex < text.length) {
     parts.push(text.substring(lastIndex));
   }
-  
+
   return parts.length > 0 ? parts : text;
 };
 
@@ -92,27 +92,27 @@ const parseCodeBlocks = (text: string) => {
       const textBefore = text.substring(lastIndex, match.index);
       parts.push(textBefore);
     }
-    
+
     const language = match[1] || 'text';
     const code = match[2];
-    
+
     // Add code block with copy button
     parts.push(
-      <CodeBlock 
-        key={`code-${keyCounter++}`} 
-        language={language} 
-        code={code} 
+      <CodeBlock
+        key={`code-${keyCounter++}`}
+        language={language}
+        code={code}
       />
     );
-    
+
     lastIndex = regex.lastIndex;
   }
-  
+
   // Add remaining text after last match
   if (lastIndex < text.length) {
     parts.push(text.substring(lastIndex));
   }
-  
+
   return parts.length > 0 ? parts : text;
 };
 
@@ -165,7 +165,7 @@ const CodeBlock: React.FC<{ language: string; code: string }> = ({ language, cod
 const parseMarkdown = (text: string) => {
   const withCodeBlocks = parseCodeBlocks(text);
   const segments = Array.isArray(withCodeBlocks) ? withCodeBlocks : [withCodeBlocks];
-  
+
   const withBold = segments.reduce<(string | JSX.Element)[]>((acc, segment) => {
     if (typeof segment === 'string') {
       const boldParts = parseMarkdownBold(segment);
@@ -175,7 +175,7 @@ const parseMarkdown = (text: string) => {
     acc.push(segment);
     return acc;
   }, []);
-  
+
   const withItalics = withBold.reduce<(string | JSX.Element)[]>((acc, segment) => {
     if (typeof segment === 'string') {
       const italicParts = parseMarkdownItalic(segment);
@@ -185,7 +185,7 @@ const parseMarkdown = (text: string) => {
     acc.push(segment);
     return acc;
   }, []);
-  
+
   return withItalics;
 };
 
@@ -219,13 +219,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-2 sm:px-0 group`}>
       <div className={`max-w-[95%] sm:max-w-[85%] md:max-w-[80%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         <div
-          className={`px-3 sm:px-4 py-3 rounded-2xl break-words overflow-hidden ${
-            isUser
-              ? 'bg-[#003A70]/80 text-white rounded-br-md backdrop-blur-md border border-white/20 shadow-lg shadow-blue-900/40 transform transition-transform duration-300 group-hover:-translate-y-0.5'
-              : isError
+          className={`px-3 sm:px-4 py-3 rounded-2xl break-words overflow-hidden ${isUser
+            ? 'bg-[#003A70]/80 text-white rounded-br-md backdrop-blur-md border border-white/20 shadow-lg shadow-blue-900/40 transform transition-transform duration-300 group-hover:-translate-y-0.5'
+            : isError
               ? 'bg-red-50 text-red-800 border border-red-200 rounded-bl-md'
               : 'bg-gray-100 text-gray-900 rounded-bl-md'
-          }`}
+            }`}
         >
           {isAssistant ? (
             <div className="prose prose-sm max-w-none overflow-hidden">
@@ -237,16 +236,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
                     const match = /language-(\w+)/.exec(className || '');
                     const language = match ? match[1] : 'text';
                     const inline = !className?.includes('language-');
-                    
+
                     if (!inline) {
                       return (
-                        <CodeBlock 
-                          language={language} 
-                          code={String(children).replace(/\n$/, '')} 
+                        <CodeBlock
+                          language={language}
+                          code={String(children).replace(/\n$/, '')}
                         />
                       );
                     }
-                    
+
                     return (
                       <code className="bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm font-mono" {...props}>
                         {children}
@@ -326,11 +325,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
 
         {/* Action buttons for assistant messages */}
         {isAssistant && (
-          <div className="flex items-center gap-1 mt-2">
+          <div className="flex items-center gap-2 mt-2">
             {/* Regenerate/Reload button */}
             <button
               onClick={handleRegenerate}
-              className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+              className="p-1.5 rounded-lg bg-white/40 backdrop-blur-sm border border-white/20 shadow-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50/50 transition-all duration-200"
               title={language === 'en' ? 'Regenerate response' : 'Régénérer la réponse'}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,7 +340,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
             {/* Copy button */}
             <button
               onClick={handleCopy}
-              className="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded transition"
+              className="p-1.5 rounded-lg bg-white/40 backdrop-blur-sm border border-white/20 shadow-sm text-gray-500 hover:text-green-600 hover:bg-green-50/50 transition-all duration-200"
               title={copied ? (language === 'en' ? 'Copied!' : 'Copié!') : (language === 'en' ? 'Copy message' : 'Copier le message')}
             >
               {copied ? (
@@ -358,11 +357,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
             {/* Like button */}
             <button
               onClick={() => setLiked(liked === true ? null : true)}
-              className={`p-1.5 rounded transition ${
-                liked === true 
-                  ? 'text-blue-600 bg-blue-50' 
-                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
-              }`}
+              className={`p-1.5 rounded-lg backdrop-blur-sm border shadow-sm transition-all duration-200 ${liked === true
+                ? 'bg-blue-500/10 border-blue-200/50 text-blue-600'
+                : 'bg-white/40 border-white/20 text-gray-500 hover:text-blue-600 hover:bg-blue-50/50'
+                }`}
               title={language === 'en' ? 'Like' : 'J\'aime'}
             >
               <svg className="w-4 h-4" fill={liked === true ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -373,11 +371,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
             {/* Dislike button */}
             <button
               onClick={() => setLiked(liked === false ? null : false)}
-              className={`p-1.5 rounded transition ${
-                liked === false 
-                  ? 'text-red-600 bg-red-50' 
-                  : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
-              }`}
+              className={`p-1.5 rounded-lg backdrop-blur-sm border shadow-sm transition-all duration-200 ${liked === false
+                ? 'bg-red-500/10 border-red-200/50 text-red-600'
+                : 'bg-white/40 border-white/20 text-gray-500 hover:text-red-600 hover:bg-red-50/50'
+                }`}
               title={language === 'en' ? 'Dislike' : 'Je n\'aime pas'}
             >
               <svg className="w-4 h-4" fill={liked === false ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -386,11 +383,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
             </button>
           </div>
         )}
-        
+
         <span className="text-xs text-gray-500 mt-1 px-1">
-          {new Date(message.created_at).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+          {new Date(message.created_at).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
           })}
         </span>
       </div>

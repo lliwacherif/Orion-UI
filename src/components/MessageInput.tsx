@@ -116,8 +116,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
         fileInputRef.current.value = '';
       }
 
-      console.log('📎 Files attached:', newAttachments.map(a => ({ 
-        name: a.filename, 
+      console.log('📎 Files attached:', newAttachments.map(a => ({
+        name: a.filename,
         size: a.size,
         type: a.type,
         hasData: !!a.data,
@@ -186,7 +186,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
 
   const handleSend = () => {
     const messageToSend = message.trim();
-    
+
     // If Search mode is active, trigger web search
     if (searchMode && messageToSend && onWebSearch) {
       onWebSearch(messageToSend);
@@ -197,7 +197,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
       }
       return;
     }
-    
+
     // If Agent mode is active, trigger schedule modal
     if (agentMode && messageToSend && onScheduleAgent) {
       onScheduleAgent(messageToSend, agentSearchMode);
@@ -209,13 +209,13 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
       }
       return;
     }
-    
+
     // If OCR mode is active and we have extracted text, send it with the message
     if (ocrMode && extractedOCRText) {
-      const combinedMessage = messageToSend 
+      const combinedMessage = messageToSend
         ? `${messageToSend}\n\n[Extracted Text]:\n${extractedOCRText}`
         : extractedOCRText;
-      
+
       onSendMessage(combinedMessage, [], useRag);
       setMessage('');
       setOcrMode(false);
@@ -225,9 +225,9 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
       setMessage('');
       setAttachments([]);
     }
-    
+
     // Keep useRag state as user might want to use it for multiple messages
-    
+
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -291,7 +291,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
     <>
       {!hasMessages ? (
         // Centered input for new chat
-        <div className="flex-1 flex flex-col items-center justify-start pt-32 px-8 pb-8 bg-white">
+        <div className="flex-1 flex flex-col items-center justify-start pt-32 px-8 pb-8">
           {/* Centered input */}
           <div className="w-full max-w-2xl">
             {/* Attachments display */}
@@ -340,11 +340,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                 </div>
                 <button
                   onClick={() => setAgentSearchMode(!agentSearchMode)}
-                  className={`p-2 rounded-full transition ${
-                    agentSearchMode 
-                      ? 'bg-sky-500 text-white shadow-md' 
-                      : 'bg-white text-gray-500 hover:bg-gray-100'
-                  }`}
+                  className={`p-2 rounded-full transition ${agentSearchMode
+                    ? 'bg-sky-500 text-white shadow-md'
+                    : 'bg-white text-gray-500 hover:bg-gray-100'
+                    }`}
                   title={language === 'en' ? 'Toggle web search for scheduled task' : 'Basculer la recherche Web pour la tâche planifiée'}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,7 +407,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
             )}
 
             {/* Input area */}
-            <div className="flex items-center gap-3 bg-white rounded-full shadow-lg border border-gray-200 px-5 py-2.5">
+            <div className="flex items-center gap-3 bg-white/20 backdrop-blur-lg rounded-full shadow-2xl border border-white/30 px-5 py-3 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]">
               {/* Plus icon and input */}
               <div className="flex items-center gap-3 flex-1">
                 <div className="relative flex items-center" ref={menuRef}>
@@ -426,7 +425,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
 
                   {/* Dropdown Menu */}
                   {showAttachmentMenu && (
-                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-white/85 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/30 py-1 z-50 overflow-hidden">
+                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-white/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 py-1 z-50 overflow-hidden">
                       <button
                         onClick={handleAttachDocumentClick}
                         className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
@@ -449,8 +448,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                       </button>
                       <button
                         onClick={handleAgentClick}
-                        className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
-                      >
+                        className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700">
                         <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -492,24 +490,40 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                   aria-label="OCR file input"
                 />
 
-                {/* Input */}
-                <input
-                  ref={textareaRef as any}
-                  type="text"
+                {/* Textarea Input */}
+                <textarea
+                  ref={textareaRef}
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={handleKeyDown as any}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    // Auto-resize textarea with gooey effect
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = 'auto';
+                      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
                   placeholder={searchMode
                     ? (language === 'en' ? 'Search the web...' : 'Rechercher sur le Web...')
-                    : agentMode 
+                    : agentMode
                       ? agentSearchMode
                         ? (language === 'en' ? 'Schedule a web search query...' : 'Planifier une recherche Web...')
                         : (language === 'en' ? 'Ask the agent to do stuff for you...' : 'Demandez à l\'agent de faire quelque chose pour vous...')
                       : (language === 'en' ? 'search for anything' : 'rechercher n\'importe quoi')
                   }
-                  className="flex-1 border-0 focus:outline-none focus:ring-0 transition disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 placeholder-gray-400 bg-transparent text-sm"
+                  rows={1}
+                  className="flex-1 border-0 focus:outline-none focus:ring-0 resize-none disabled:bg-gray-100/50 disabled:cursor-not-allowed text-gray-700 placeholder-gray-400 bg-transparent text-sm leading-relaxed py-1.5 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] max-h-[200px] overflow-y-auto"
                   disabled={disabled || ocrMutation.isLoading}
                   aria-label={t.sendMessage}
+                  style={{
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent'
+                  }}
                 />
               </div>
 
@@ -532,14 +546,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 mt-3 text-center">
-              {t.helpText}
-            </p>
+
           </div>
         </div>
       ) : (
         // Bottom input for existing chat
-        <div className="border-t bg-white p-4">
+        <div className="p-4">
           {/* Attachments display */}
           {attachments.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
@@ -586,11 +598,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
               </div>
               <button
                 onClick={() => setAgentSearchMode(!agentSearchMode)}
-                className={`p-1.5 rounded-full transition ${
-                  agentSearchMode 
-                    ? 'bg-sky-500 text-white shadow-md' 
-                    : 'bg-white text-gray-500 hover:bg-gray-100'
-                }`}
+                className={`p-1.5 rounded-full transition ${agentSearchMode
+                  ? 'bg-sky-500 text-white shadow-md'
+                  : 'bg-white text-gray-500 hover:bg-gray-100'
+                  }`}
                 title={language === 'en' ? 'Toggle web search for scheduled task' : 'Basculer la recherche Web pour la tâche planifiée'}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -654,7 +665,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
           )}
 
           {/* Input area */}
-          <div className="flex items-center gap-3 bg-white rounded-full shadow-lg border border-gray-200 px-5 py-2.5 max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-lg rounded-full shadow-2xl border border-white/30 px-5 py-3 max-w-4xl mx-auto transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]">
             {/* Plus icon and input */}
             <div className="flex items-center gap-3 flex-1">
               <div className="relative flex items-center" ref={menuRef}>
@@ -672,7 +683,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
 
                 {/* Dropdown Menu */}
                 {showAttachmentMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white/85 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/30 py-1 z-50 overflow-hidden">
+                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 py-1 z-50 overflow-hidden">
                     <button
                       onClick={handleAttachDocumentClick}
                       className="w-full px-4 py-3 text-left hover:bg-white/40 transition-colors flex items-center gap-3 text-gray-700"
@@ -738,24 +749,40 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                 aria-label="OCR file input"
               />
 
-              {/* Input */}
-              <input
-                ref={textareaRef as any}
-                type="text"
+              {/* Textarea Input */}
+              <textarea
+                ref={textareaRef}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown as any}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  // Auto-resize textarea with gooey effect
+                  if (textareaRef.current) {
+                    textareaRef.current.style.height = 'auto';
+                    textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
                 placeholder={searchMode
                   ? (language === 'en' ? 'Search the web...' : 'Rechercher sur le Web...')
-                  : agentMode 
+                  : agentMode
                     ? agentSearchMode
                       ? (language === 'en' ? 'Schedule a web search query...' : 'Planifier une recherche Web...')
                       : (language === 'en' ? 'Ask the agent to do stuff for you...' : 'Demandez à l\'agent de faire quelque chose pour vous...')
                     : (language === 'en' ? 'search for anything' : 'rechercher n\'importe quoi')
                 }
-                className="flex-1 border-0 focus:outline-none focus:ring-0 transition disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 placeholder-gray-400 bg-transparent text-sm"
+                rows={1}
+                className="flex-1 border-0 focus:outline-none focus:ring-0 resize-none disabled:bg-gray-100/50 disabled:cursor-not-allowed text-gray-700 placeholder-gray-400 bg-transparent text-sm leading-relaxed py-1.5 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] max-h-[200px] overflow-y-auto"
                 disabled={disabled || ocrMutation.isLoading}
                 aria-label={t.sendMessage}
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent'
+                }}
               />
             </div>
 
@@ -778,9 +805,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
             </button>
           </div>
 
-          <p className="text-xs text-gray-500 mt-2">
-            {t.helpText}
-          </p>
+
         </div>
       )}
     </>

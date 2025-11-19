@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useModel, ModelType } from '../context/ModelContext';
 import { useLanguage } from '../context/LanguageContext';
+import { translations } from '../translations';
 
 const ModelSelector: React.FC = () => {
   const { currentModel, setModel } = useModel();
@@ -12,6 +13,7 @@ const ModelSelector: React.FC = () => {
   const models = [
     { id: 'chat' as ModelType, name: 'AURA' },
     { id: 'ocr' as ModelType, name: 'OCR' },
+    { id: 'opencare' as ModelType, name: 'OpenCare' },
   ];
 
   const selectedModel = models.find(m => m.id === currentModel) || models[0];
@@ -31,6 +33,8 @@ const ModelSelector: React.FC = () => {
   const handleModelChange = (modelId: ModelType) => {
     setModel(modelId);
   };
+
+  const t = translations[language].modelSelector;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -52,12 +56,12 @@ const ModelSelector: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="absolute top-full left-0 mt-2 w-56 rounded-xl shadow-2xl z-50 overflow-hidden bg-[#003A70]/80 backdrop-blur-xl border border-white/15"
         >
           {/* Header */}
           <div className="px-4 py-3 border-b border-white/20 flex items-center justify-between">
-            <span className="text-white font-semibold text-sm">Model</span>
+            <span className="text-white font-semibold text-sm">{t.title}</span>
             <button
               onClick={() => setIsOpen(false)}
               className="text-white/80 hover:text-white transition"
@@ -78,7 +82,7 @@ const ModelSelector: React.FC = () => {
               >
                 {/* Model Name */}
                 <span className="flex-1 text-white font-medium text-sm">{model.name}</span>
-                
+
                 {/* Radio Button */}
                 <div className="flex items-center justify-center">
                   {currentModel === model.id ? (
@@ -96,29 +100,38 @@ const ModelSelector: React.FC = () => {
           {/* Temporary Chat Toggle */}
           <div className="px-3 pb-3 pt-1">
             <button
+              type="button"
               onClick={() => setIsTemporaryMode(!isTemporaryMode)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition text-left"
+              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors text-left cursor-pointer"
             >
-              {/* Clock Icon */}
-              <svg className="w-5 h-5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              
-              {/* Label */}
-              <span className="flex-1 text-white font-medium text-sm">
-                {language === 'en' ? 'Temporary chat' : 'Chat temporaire'}
-              </span>
-              
-              {/* Toggle Switch */}
-              <div 
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  isTemporaryMode ? 'bg-emerald-400' : 'bg-white/30'
-                }`}
-              >
-                <div 
-                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    isTemporaryMode ? 'translate-x-5' : 'translate-x-0'
+              {/* Left Side: Icon + Label */}
+              <div className="flex items-center gap-3">
+                {/* Clock Icon */}
+                <svg className="w-5 h-5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+
+                {/* Label and optional description */}
+                <div className="flex flex-col text-left">
+                  <span className="text-white font-medium text-sm">
+                    {language === 'en' ? 'Temporary chat' : 'Chat temporaire'}
+                  </span>
+
+                </div>
+              </div>
+
+              {/* Right Side: Switch */}
+              <div
+                className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${isTemporaryMode ? 'bg-green-500' : 'bg-gray-200'
                   }`}
+              >
+                <span className="sr-only">
+                  {language === 'en' ? 'Use temporary chat' : 'Utiliser le chat temporaire'}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${isTemporaryMode ? 'translate-x-6' : 'translate-x-0'
+                    }`}
                 />
               </div>
             </button>

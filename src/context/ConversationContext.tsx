@@ -1,12 +1,12 @@
 // @refresh reset
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { useAuth } from './AuthContext';
-import { 
-  createConversation, 
-  getUserConversations, 
-  getConversationDetails, 
-  updateConversation, 
-  deleteConversation as deleteConversationAPI 
+import {
+  createConversation,
+  getUserConversations,
+  getConversationDetails,
+  updateConversation,
+  deleteConversation as deleteConversationAPI
 } from '../api/orcha';
 import type { Conversation, ChatMessage, CreateConversationRequest, UpdateConversationRequest } from '../types/orcha';
 
@@ -24,6 +24,7 @@ interface ConversationContextType {
   refreshConversations: () => Promise<void>;
   refreshMessages: () => Promise<void>;
   clearCurrentConversation: () => void;
+  addMessage: (message: ChatMessage) => void;
 }
 
 const ConversationContext = createContext<ConversationContextType | undefined>(undefined);
@@ -43,19 +44,19 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
 
   const refreshConversations = useCallback(async () => {
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
     try {
       console.log('🔄 Fetching conversations for user:', user.id);
       const fetchedConversations = await getUserConversations(user.id);
       console.log('✅ Conversations fetched:', fetchedConversations);
-      
+
       // Store the current conversation ID before updating
       const previousConversationId = currentConversationId;
-      
+
       setConversations(fetchedConversations);
-      
+
       // Only auto-select first conversation if there's no current conversation
       // This prevents switching away from the current conversation after sending a message
       if (!previousConversationId && fetchedConversations.length > 0) {
@@ -82,7 +83,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
 
   const loadConversationMessages = useCallback(async () => {
     if (!user || !currentConversationId) return;
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -101,7 +102,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
   // Load conversations when user changes
   useEffect(() => {
     if (authLoading) return; // Wait for auth to finish loading
-    
+
     if (user) {
       refreshConversations();
     } else {
@@ -115,7 +116,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
   // Load messages when conversation changes
   useEffect(() => {
     if (authLoading) return; // Wait for auth to finish loading
-    
+
     // Only reload messages if the conversation ID actually changed
     if (user && currentConversationId) {
       if (previousConversationIdRef.current !== currentConversationId) {
@@ -133,7 +134,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
 
   const createNewConversation = useCallback(async () => {
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -142,7 +143,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
         title: 'New Chat',
         tenant_id: undefined // You can add tenant_id if needed
       };
-      
+
       const newConversation = await createConversation(payload);
       setConversations(prev => [newConversation, ...prev]);
       setCurrentConversationId(newConversation.id);
@@ -161,13 +162,13 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
 
   const deleteConversation = useCallback(async (id: number) => {
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
     try {
       await deleteConversationAPI(user.id, id);
       setConversations(prev => prev.filter(c => c.id !== id));
-      
+
       // If deleting current conversation, switch to another or create new
       if (id === currentConversationId) {
         const remainingConversations = conversations.filter(c => c.id !== id);
@@ -187,14 +188,14 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
 
   const updateConversationTitle = useCallback(async (id: number, title: string) => {
     if (!user) return;
-    
+
     setLoading(true);
     setError(null);
     try {
       const payload: UpdateConversationRequest = { title };
       const updatedConversation = await updateConversation(user.id, id, payload);
-      
-      setConversations(prev => 
+
+      setConversations(prev =>
         prev.map(conv => conv.id === id ? updatedConversation : conv)
       );
     } catch (err) {
@@ -214,6 +215,10 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
     await loadConversationMessages();
   }, [loadConversationMessages]);
 
+  const addMessage = useCallback((message: ChatMessage) => {
+    setMessages(prev => [...prev, message]);
+  }, []);
+
   const currentConversation = conversations.find(c => c.id === currentConversationId) || null;
 
   return (
@@ -232,6 +237,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
         refreshConversations,
         refreshMessages,
         clearCurrentConversation,
+        addMessage,
       }}
     >
       {children}
