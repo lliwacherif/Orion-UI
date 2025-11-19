@@ -1,4 +1,4 @@
-import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useMutation } from 'react-query';
 import type { Attachment, OCRExtractRequest } from '../types/orcha';
 import { useLanguage } from '../context/LanguageContext';
@@ -231,13 +231,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
     }
   };
 
