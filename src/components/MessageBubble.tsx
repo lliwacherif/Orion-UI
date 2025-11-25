@@ -6,6 +6,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 interface MessageBubbleProps {
   message: ChatMessage;
+  currentModel?: string;
   onRegenerate?: () => void;
 }
 
@@ -189,7 +190,7 @@ const parseMarkdown = (text: string) => {
   return withItalics;
 };
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, currentModel, onRegenerate }) => {
   const isUser = message.role === 'user';
   const isError = message.role === 'system'; // Treat system messages as errors for now
   const isAssistant = message.role === 'assistant';
@@ -217,6 +218,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-2 sm:px-0 group`}>
+      {/* OpenCare Avatar - only for assistant messages */}
+      {isAssistant && currentModel === 'opencare' && (
+        <div className="flex-shrink-0 mr-3 mt-1">
+          <img
+            src="/assets/opencare logo/p1.png"
+            alt="OpenCare Avatar"
+            className="w-20 h-20 rounded-full object-cover"
+          />
+        </div>
+      )}
       <div className={`max-w-[95%] sm:max-w-[85%] md:max-w-[80%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         <div
           className={`px-3 sm:px-4 py-3 rounded-2xl break-words overflow-hidden ${isUser

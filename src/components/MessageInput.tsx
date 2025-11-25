@@ -333,9 +333,9 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                 </div>
                 <button
                   onClick={() => setAgentSearchMode(!agentSearchMode)}
-                  className={`p-2 rounded-full transition ${agentSearchMode
-                    ? 'bg-sky-500 text-white shadow-md'
-                    : 'bg-white text-gray-500 hover:bg-gray-100'
+                  className={`p-2 rounded-full transition backdrop-blur-md border shadow-lg ${agentSearchMode
+                    ? 'bg-sky-500/80 text-white border-white/30'
+                    : 'bg-white/20 text-gray-500 hover:bg-white/30 border-white/30'
                     }`}
                   title={language === 'en' ? 'Toggle web search for scheduled task' : 'Basculer la recherche Web pour la tâche planifiée'}
                 >
@@ -591,9 +591,9 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
               </div>
               <button
                 onClick={() => setAgentSearchMode(!agentSearchMode)}
-                className={`p-1.5 rounded-full transition ${agentSearchMode
-                  ? 'bg-sky-500 text-white shadow-md'
-                  : 'bg-white text-gray-500 hover:bg-gray-100'
+                className={`p-1.5 rounded-full transition backdrop-blur-md border shadow-lg ${agentSearchMode
+                  ? 'bg-sky-500/80 text-white border-white/30'
+                  : 'bg-white/20 text-gray-500 hover:bg-white/30 border-white/30'
                   }`}
                 title={language === 'en' ? 'Toggle web search for scheduled task' : 'Basculer la recherche Web pour la tâche planifiée'}
               >

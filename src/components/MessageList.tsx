@@ -33,6 +33,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, 
         <React.Fragment key={message.id}>
           <MessageBubble
             message={message}
+            currentModel={currentModel}
             onRegenerate={() => onRegenerateMessage?.(index)}
           />
         </React.Fragment>

@@ -50,6 +50,8 @@ const EmptyState: React.FC = () => {
     return templates[index](userName);
   }, [language, currentConversation?.id, user?.full_name, user?.username, currentModel]);
 
+
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8">
       <div className="max-w-2xl w-full text-center space-y-6">
@@ -69,6 +71,7 @@ const EmptyState: React.FC = () => {
         >
           {greeting}
         </h1>
+
       </div>
     </div>
   );

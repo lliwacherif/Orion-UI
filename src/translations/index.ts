@@ -150,7 +150,7 @@ export const translations = {
 
     // OpenCare
     openCare: {
-      welcome: 'I am AURA, an advanced assistant specialized in insurance and finance topics—health insurance, FinTech, risk management, and compliant financial advice. I provide precise, professional insights while staying concise and analytical. How can I assist you today?',
+      welcome: 'Welcome, I am AURA. I assist you on OpenCare to ensure everything is smooth and pleasant. How can I be of help today?',
     },
   },
 
