@@ -43,6 +43,7 @@ const ChatWindow: React.FC = () => {
   const [showAgentModal, setShowAgentModal] = useState(false);
   const [agentInstructions, setAgentInstructions] = useState('');
   const [agentNotification, setAgentNotification] = useState<AgentNotificationData | null>(null);
+  const [prefilledQuestion, setPrefilledQuestion] = useState('');
 
   console.log('🔍 ChatWindow render:', {
     user: !!user,
@@ -167,12 +168,44 @@ const ChatWindow: React.FC = () => {
     const isFirstMessage = messages.length === 0;
     const shouldAutoName = isFirstMessage && currentConversation?.title === 'New Chat';
 
+    // Handle OpenCare model - attach documentation
+    let finalAttachments = [...attachments];
+    let finalMessage = message;
+
+    if (currentModel === 'opencare') {
+      try {
+        console.log('📄 OpenCare model detected - loading documentation...');
+        // Read OpenCare document from public assets
+        const response = await fetch('/assets/ContextDocs/OpenCare document.txt');
+        const base64Content = await response.text();
+
+        // Create attachment for OpenCare documentation
+        const openCareAttachment: Attachment = {
+          uri: 'OpenCare Documentation.pdf',
+          type: 'application/pdf',
+          filename: 'OpenCare Documentation.pdf',
+          data: base64Content.trim() // Remove any whitespace
+        };
+
+        // Add OpenCare document as first attachment
+        finalAttachments = [openCareAttachment, ...attachments];
+
+        // Prepend system instruction to the message
+        finalMessage = `Based on the OpenCare documentation provided, please answer the following user question accurately and comprehensively:\n\n${message}`;
+
+        console.log('✅ OpenCare documentation attached successfully');
+      } catch (error) {
+        console.error('❌ Failed to load OpenCare documentation:', error);
+        // Continue without the document if it fails to load
+      }
+    }
+
     // Prepare chat request with conversation_id
     const chatRequest: ChatRequest = {
       user_id: user.id.toString(),
       tenant_id: session.tenant_id,
-      message,
-      attachments: attachments.length > 0 ? attachments : undefined,
+      message: finalMessage,
+      attachments: finalAttachments.length > 0 ? finalAttachments : undefined,
       use_rag: useRag,
       conversation_id: currentConversationId, // Include conversation_id for database persistence
       conversation_history: [], // Let backend load from database
@@ -181,11 +214,12 @@ const ChatWindow: React.FC = () => {
     console.log('📤 Sending chat request:', {
       user_id: user.id,
       conversation_id: currentConversationId,
-      message,
-      attachmentCount: attachments.length,
+      message: finalMessage.substring(0, 100) + '...', // Truncate for logging
+      attachmentCount: finalAttachments.length,
       useRag,
       isFirstMessage,
-      shouldAutoName
+      shouldAutoName,
+      isOpenCare: currentModel === 'opencare'
     });
 
     // If this is the first message, auto-name the conversation
@@ -294,6 +328,16 @@ const ChatWindow: React.FC = () => {
 
   const handleCloseAgentNotification = () => {
     setAgentNotification(null);
+  };
+
+  // Handle predefined question selection from OpenCare
+  const handleQuestionSelect = (question: string) => {
+    setPrefilledQuestion(question);
+  };
+
+  // Clear prefilled question after it's been used
+  const handlePrefilledQuestionUsed = () => {
+    setPrefilledQuestion('');
   };
 
   // Web search handler
@@ -456,6 +500,7 @@ const ChatWindow: React.FC = () => {
                 messages={messages}
                 isLoading={chatMutation.isLoading || searchMutation.isLoading}
                 onRegenerateMessage={handleRegenerateMessage}
+                onQuestionSelect={handleQuestionSelect}
               />
 
               {/* Input */}
@@ -467,6 +512,8 @@ const ChatWindow: React.FC = () => {
                     onWebSearch={handleWebSearch}
                     disabled={chatMutation.isLoading || searchMutation.isLoading}
                     hasMessages={messages.length > 0}
+                    prefilledMessage={prefilledQuestion}
+                    onPrefilledMessageUsed={handlePrefilledQuestionUsed}
                   />
                 </div>
               </div>

@@ -151,6 +151,13 @@ export const translations = {
     // OpenCare
     openCare: {
       welcome: 'Welcome, I am AURA. I assist you on OpenCare to ensure everything is smooth and pleasant. How can I be of help today?',
+      questions: [
+        'How does the system distinguish between Offshore and Onshore processes?',
+        'How are Reinsurance and Retrocession models configured in OpenCare?',
+        'How does OpenCare handle "Institutional Products" like the IPM in Senegal?',
+        'What is the specific formula used for calculating premiums and how are prorata coefficients applied?',
+        'What are the management differences between Direct Billing (Tiers Payant) and Reimbursement Requests (DR)?',
+      ],
     },
   },
 
@@ -305,7 +312,14 @@ export const translations = {
 
     // OpenCare
     openCare: {
-      welcome: 'Bienvenue, je suis AURA. Je vous assiste sur OpenCare pour que tout soit fluide et agréable. Comment puis-je vous être utile aujourd’hui ? ',
+      welcome: "Bienvenue, je suis AURA. Je vous assiste sur OpenCare pour que tout soit fluide et agréable. Comment puis-je vous être utile aujourd'hui ?",
+      questions: [
+        'Comment le système distingue-t-il les processus Offshore et Onshore ?',
+        'Comment les modèles de Réassurance et de Rétrocession sont-ils configurés dans OpenCare ?',
+        'Comment OpenCare gère-t-il les "Produits Institutionnels" comme l\'IPM au Sénégal ?',
+        'Quelle est la formule spécifique utilisée pour le calcul des primes et comment les coefficients prorata sont-ils appliqués ?',
+        'Quelles sont les différences de gestion entre la Facturation Directe (Tiers Payant) et les Demandes de Remboursement (DR) ?',
+      ],
     },
   },
 };

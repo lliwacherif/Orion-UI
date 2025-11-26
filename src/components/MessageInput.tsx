@@ -14,9 +14,11 @@ interface MessageInputProps {
   onWebSearch?: (query: string) => void;
   disabled?: boolean;
   hasMessages?: boolean;
+  prefilledMessage?: string;
+  onPrefilledMessageUsed?: () => void;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAgent, onWebSearch, disabled = false, hasMessages = false }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAgent, onWebSearch, disabled = false, hasMessages = false, prefilledMessage = '', onPrefilledMessageUsed }) => {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [useRag] = useState(false);
@@ -51,6 +53,22 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showAttachmentMenu]);
+
+  // Handle prefilled message from predefined questions
+  useEffect(() => {
+    if (prefilledMessage) {
+      setMessage(prefilledMessage);
+      // Focus the textarea
+      textareaRef.current?.focus();
+      // Auto-resize textarea
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      }
+      // Notify parent that we've used the prefilled message
+      onPrefilledMessageUsed?.();
+    }
+  }, [prefilledMessage, onPrefilledMessageUsed]);
 
   // OCR extraction mutation
   const ocrMutation = useMutation(
