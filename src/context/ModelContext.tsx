@@ -6,6 +6,8 @@ export type ModelType = 'chat' | 'doc' | 'vision' | 'ocr' | 'opencare';
 interface ModelContextType {
   currentModel: ModelType;
   setModel: (model: ModelType) => void;
+  isAgentMode: boolean;
+  setAgentMode: (isAgent: boolean) => void;
 }
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
@@ -18,6 +20,7 @@ interface ModelProviderProps {
 
 export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
   const [currentModel, setCurrentModel] = useState<ModelType>('chat');
+  const [isAgentMode, setAgentMode] = useState(false);
 
   // Load model from localStorage on mount
   useEffect(() => {
@@ -37,7 +40,7 @@ export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
   };
 
   return (
-    <ModelContext.Provider value={{ currentModel, setModel }}>
+    <ModelContext.Provider value={{ currentModel, setModel, isAgentMode, setAgentMode }}>
       {children}
     </ModelContext.Provider>
   );

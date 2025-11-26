@@ -18,6 +18,8 @@ import DocumentCanvas from './DocumentCanvas';
 import AgentScheduleModal, { type AgentTask } from './AgentScheduleModal';
 import AgentNotification, { type AgentNotificationData } from './AgentNotification';
 import { AgentTaskService } from '../services/agentTaskService';
+import PlanWithAgent from './PlanWithAgent';
+import AgentTaskScheduler from './AgentTaskScheduler';
 
 const ChatWindow: React.FC = () => {
   const { session } = useSession();
@@ -32,7 +34,7 @@ const ChatWindow: React.FC = () => {
     updateConversationTitle,
     addMessage
   } = useConversation();
-  const { currentModel } = useModel();
+  const { currentModel, isAgentMode } = useModel();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
   const [showPulseModal, setShowPulseModal] = useState(false);
@@ -418,6 +420,32 @@ const ChatWindow: React.FC = () => {
         {/* Render different interface based on model */}
         {currentModel === 'ocr' ? (
           <OCRExtractor />
+        ) : isAgentMode ? (
+          /* Agent Mode Layout */
+          <div className="flex-1 overflow-hidden relative p-6 bg-gradient-to-br from-gray-50 to-blue-50/30">
+            {/* Agent Mode Header */}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
+              <div className="px-6 py-2 bg-white/30 backdrop-blur-xl border border-white/40 rounded-full shadow-lg flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
+                <span className="font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                  Agent Mode
+                </span>
+              </div>
+            </div>
+
+            {/* 50/50 Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full pt-12">
+              {/* Left Column: Plan With Agent */}
+              <div className="h-full overflow-hidden">
+                <PlanWithAgent />
+              </div>
+
+              {/* Right Column: Schedule a Task */}
+              <div className="h-full overflow-hidden">
+                <AgentTaskScheduler />
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="flex-1 flex overflow-hidden relative">
             {/* Chat section - takes full width on mobile, partial on desktop when canvas is shown */}
