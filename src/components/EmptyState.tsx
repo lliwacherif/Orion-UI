@@ -16,7 +16,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onQuestionSelect }) => {
   const { currentModel } = useModel();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [longPressIndex, setLongPressIndex] = useState<number | null>(null);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Handle touch start for long press detection (mobile)
   const handleTouchStart = useCallback((index: number) => {
@@ -94,8 +94,8 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onQuestionSelect }) => {
 
 
   // Get OpenCare predefined questions
-  const openCareQuestions = currentModel === 'opencare' 
-    ? translations[language].openCare.questions 
+  const openCareQuestions = currentModel === 'opencare'
+    ? translations[language].openCare.questions
     : [];
 
   const handleQuestionClick = (question: string) => {
@@ -126,7 +126,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onQuestionSelect }) => {
 
         {/* OpenCare Predefined Questions */}
         {currentModel === 'opencare' && openCareQuestions.length > 0 && (
-          <div 
+          <div
             className="mt-8 flex flex-wrap justify-center gap-3"
             onClick={handleContainerClick}
           >
@@ -166,18 +166,18 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onQuestionSelect }) => {
                   `}
                   style={{
                     maxWidth: isExpanded(index) ? '500px' : '200px',
-                    transform: isExpanded(index) 
-                      ? 'scale(1.02)' 
+                    transform: isExpanded(index)
+                      ? 'scale(1.02)'
                       : (hoveredIndex !== null || longPressIndex !== null) && !isExpanded(index)
-                        ? 'translateX(0) scale(0.98)' 
+                        ? 'translateX(0) scale(0.98)'
                         : 'scale(1)',
                   }}
                 >
                   {/* Inner glow effect */}
                   <div className={`absolute inset-0 bg-gradient-to-r from-white/10 via-white/20 to-white/10 rounded-full transition-opacity duration-300 ${isExpanded(index) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
-                  
+
                   {/* Question text */}
-                  <span 
+                  <span
                     className={`
                       relative z-10 text-sm font-medium
                       bg-gradient-to-r from-gray-700 to-gray-600 bg-clip-text text-transparent
@@ -195,7 +195,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onQuestionSelect }) => {
                   </span>
 
                   {/* Blur/glow halo behind on hover/expanded */}
-                  <div 
+                  <div
                     className={`
                       absolute inset-0 -z-10 
                       bg-gradient-to-r from-cyan-200/30 via-white/40 to-blue-200/30 
