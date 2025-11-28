@@ -37,6 +37,7 @@ export interface ChatRequest {
   message: string;
   attachments?: Attachment[];
   use_rag?: boolean;
+  use_pro_mode?: boolean;
   conversation_history?: ConversationHistoryMessage[];
   conversation_id?: number | null;
 }

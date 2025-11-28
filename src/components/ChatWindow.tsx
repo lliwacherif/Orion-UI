@@ -34,7 +34,7 @@ const ChatWindow: React.FC = () => {
     updateConversationTitle,
     addMessage
   } = useConversation();
-  const { currentModel, isAgentMode } = useModel();
+  const { currentModel, isAgentMode, isProMode } = useModel();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
   const [showPulseModal, setShowPulseModal] = useState(false);
@@ -207,6 +207,7 @@ const ChatWindow: React.FC = () => {
       message: finalMessage,
       attachments: finalAttachments.length > 0 ? finalAttachments : undefined,
       use_rag: useRag,
+      use_pro_mode: isProMode, // Use Bytez Cloud API when Pro Mode is enabled
       conversation_id: currentConversationId, // Include conversation_id for database persistence
       conversation_history: [], // Let backend load from database
     };
@@ -217,6 +218,7 @@ const ChatWindow: React.FC = () => {
       message: finalMessage.substring(0, 100) + '...', // Truncate for logging
       attachmentCount: finalAttachments.length,
       useRag,
+      useProMode: isProMode,
       isFirstMessage,
       shouldAutoName,
       isOpenCare: currentModel === 'opencare'

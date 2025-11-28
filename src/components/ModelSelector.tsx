@@ -4,7 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { translations } from '../translations';
 
 const ModelSelector: React.FC = () => {
-  const { currentModel, setModel, isAgentMode, setAgentMode } = useModel();
+  const { currentModel, setModel, isAgentMode, setAgentMode, isProMode, setProMode } = useModel();
   const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -97,7 +97,7 @@ const ModelSelector: React.FC = () => {
           </div>
 
           {/* Agent Mode Toggle */}
-          <div className="px-3 pb-3 pt-1">
+          <div className="px-3 pb-1 pt-1">
             <button
               type="button"
               onClick={() => setAgentMode(!isAgentMode)}
@@ -129,6 +129,44 @@ const ModelSelector: React.FC = () => {
                 <span
                   aria-hidden="true"
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isAgentMode ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                />
+              </div>
+            </button>
+          </div>
+
+          {/* Pro Mode Toggle */}
+          <div className="px-3 pb-3 pt-0">
+            <button
+              type="button"
+              onClick={() => setProMode(!isProMode)}
+              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg hover:bg-white/10 transition-colors text-left cursor-pointer group/pro"
+              title="Uses Bytez Cloud (Qwen 7B). Unlimited text, higher quality."
+            >
+              {/* Left Side: Icon + Label */}
+              <div className="flex items-center gap-3">
+                {/* Pro Cloud Icon */}
+                <svg className={`w-5 h-5 transition-colors duration-200 ${isProMode ? 'text-amber-400' : 'text-white/90'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                </svg>
+
+                {/* Label */}
+                <span className={`font-medium text-sm transition-colors duration-200 ${isProMode ? 'text-amber-400' : 'text-white'}`}>
+                  AURA Pro
+                </span>
+              </div>
+
+              {/* Right Side: Switch */}
+              <div
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${isProMode ? 'bg-gradient-to-r from-amber-400 to-orange-500' : 'bg-gray-400/50'
+                  }`}
+              >
+                <span className="sr-only">
+                  Use AURA Pro Mode
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isProMode ? 'translate-x-5' : 'translate-x-0'
                     }`}
                 />
               </div>
