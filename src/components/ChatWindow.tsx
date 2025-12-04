@@ -207,7 +207,7 @@ const ChatWindow: React.FC = () => {
       message: finalMessage,
       attachments: finalAttachments.length > 0 ? finalAttachments : undefined,
       use_rag: useRag,
-      use_pro_mode: isProMode, // Use Bytez Cloud API when Pro Mode is enabled
+      use_pro_mode: isProMode,
       conversation_id: currentConversationId, // Include conversation_id for database persistence
       conversation_history: [], // Let backend load from database
     };

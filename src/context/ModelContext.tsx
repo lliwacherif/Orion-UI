@@ -15,7 +15,6 @@ interface ModelContextType {
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
 const MODEL_STORAGE_KEY = 'aura_selected_model';
-const PRO_MODE_STORAGE_KEY = 'aura_pro_mode';
 
 interface ModelProviderProps {
   children: ReactNode;
@@ -32,22 +31,12 @@ export const ModelProvider: React.FC<ModelProviderProps> = ({ children }) => {
     if (stored && (stored === 'chat' || stored === 'doc' || stored === 'vision' || stored === 'ocr')) {
       setCurrentModel(stored as ModelType);
     }
-    // Load pro mode setting
-    const proModeStored = localStorage.getItem(PRO_MODE_STORAGE_KEY);
-    if (proModeStored === 'true') {
-      setProMode(true);
-    }
   }, []);
 
   // Save model to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(MODEL_STORAGE_KEY, currentModel);
   }, [currentModel]);
-
-  // Save pro mode to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem(PRO_MODE_STORAGE_KEY, String(isProMode));
-  }, [isProMode]);
 
   const setModel = (model: ModelType) => {
     setCurrentModel(model);

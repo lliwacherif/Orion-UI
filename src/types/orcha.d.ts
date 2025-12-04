@@ -86,10 +86,10 @@ export interface ChatResponse {
   usage?: any;
 }
 
-export type PreparedPayload = 
-  | ChatPayload 
-  | OCRPayload 
-  | RAGPayload 
+export type PreparedPayload =
+  | ChatPayload
+  | OCRPayload
+  | RAGPayload
   | Record<string, any>;
 
 export interface ChatPayload {

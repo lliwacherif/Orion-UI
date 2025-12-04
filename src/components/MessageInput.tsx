@@ -4,7 +4,6 @@ import type { Attachment, OCRExtractRequest } from '../types/orcha';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useSession } from '../context/SessionContext';
-import { useModel } from '../context/ModelContext';
 import { translations } from '../translations';
 import { extractOCRText } from '../api/orcha';
 import AttachmentChip from './AttachmentChip';
@@ -19,7 +18,7 @@ interface MessageInputProps {
   onPrefilledMessageUsed?: () => void;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAgent, onWebSearch, disabled = false, hasMessages = false, prefilledMessage = '', onPrefilledMessageUsed }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAgent, onWebSearch, disabled = false, hasMessages = false, prefilledMessage, onPrefilledMessageUsed }) => {
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [useRag] = useState(false);
@@ -36,7 +35,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
   const { language } = useLanguage();
   const { user } = useAuth();
   const { session } = useSession();
-  const { isProMode } = useModel();
   const t = translations[language].input;
 
   // Close dropdown when clicking outside
@@ -56,18 +54,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
     };
   }, [showAttachmentMenu]);
 
-  // Handle prefilled message from predefined questions
+  // Handle prefilled message from OpenCare question selection
   useEffect(() => {
     if (prefilledMessage) {
       setMessage(prefilledMessage);
-      // Focus the textarea
-      textareaRef.current?.focus();
-      // Auto-resize textarea
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
-      }
-      // Notify parent that we've used the prefilled message
       onPrefilledMessageUsed?.();
     }
   }, [prefilledMessage, onPrefilledMessageUsed]);
@@ -419,31 +409,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
               </div>
             )}
 
-            {/* Pro Mode Indicator - Centered (New Chat) */}
-            {isProMode && (
-              <div className="mb-4 flex items-center justify-center">
-                <div 
-                  className="group relative flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-orange-500/20 backdrop-blur-md border border-amber-300/40 px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
-                  title={language === 'en' ? 'Uses Bytez Cloud (Qwen 7B). Unlimited text, higher quality.' : 'Utilise Bytez Cloud (Qwen 7B). Texte illimité, qualité supérieure.'}
-                >
-                  {/* Cloud icon */}
-                  <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                  </svg>
-                  <span className="font-semibold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
-                    AURA Pro
-                  </span>
-                  {/* Animated glow */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-orange-500/10 rounded-full blur-lg opacity-50 animate-pulse" />
-                  {/* Sparkle indicator */}
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                  </span>
-                </div>
-              </div>
-            )}
-
             {/* Input area */}
             <div className="flex items-center gap-3 bg-white/20 backdrop-blur-lg rounded-full shadow-2xl border border-white/30 px-5 py-3 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]">
               {/* Plus icon and input */}
@@ -699,31 +664,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-            </div>
-          )}
-
-          {/* Pro Mode Indicator - Bottom (Existing Chat) */}
-          {isProMode && (
-            <div className="mb-3 flex items-center">
-              <div 
-                className="group relative flex items-center gap-2 bg-gradient-to-r from-amber-400/20 to-orange-500/20 backdrop-blur-md border border-amber-300/40 px-3 py-1.5 rounded-full text-sm shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
-                title={language === 'en' ? 'Uses Bytez Cloud (Qwen 7B). Unlimited text, higher quality.' : 'Utilise Bytez Cloud (Qwen 7B). Texte illimité, qualité supérieure.'}
-              >
-                {/* Cloud icon */}
-                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                </svg>
-                <span className="font-semibold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
-                  AURA Pro
-                </span>
-                {/* Animated glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-400/10 to-orange-500/10 rounded-full blur-lg opacity-50 animate-pulse" />
-                {/* Sparkle indicator */}
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                </span>
-              </div>
             </div>
           )}
 

@@ -21,7 +21,14 @@ const api = axios.create({
 export const chat = async (payload: ChatRequest): Promise<ChatResponse> => {
   try {
     const traceId = uuidv4();
-    
+
+    // Debug: Log the payload being sent including pro mode status
+    console.log('📤 CHAT API PAYLOAD:', {
+      ...payload,
+      message: payload.message?.substring(0, 50) + '...', // Truncate message for logging
+      use_pro_mode: payload.use_pro_mode // Explicitly log pro mode
+    });
+
     const response = await api.post<ChatResponse>('/orcha/chat', payload, {
       headers: {
         'x-trace-id': traceId,
@@ -34,7 +41,7 @@ export const chat = async (payload: ChatRequest): Promise<ChatResponse> => {
     console.log('💬 Message:', response.data.message);
     console.log('📚 Contexts:', response.data.contexts);
     console.log('🪙 Token Usage:', response.data.token_usage);
-    
+
     if (response.data.token_usage) {
       console.log('✅ Token usage IS in response:', {
         current: response.data.token_usage.current_usage,
@@ -69,7 +76,7 @@ export const chat = async (payload: ChatRequest): Promise<ChatResponse> => {
 export const route = async (payload: RouteRequest): Promise<RouteResponse> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.post<RouteResponse>('/orcha/route', payload, {
       headers: {
         'x-trace-id': traceId,
@@ -169,7 +176,7 @@ export const getTokenUsage = async (userId: string): Promise<any> => {
 export const extractOCRText = async (payload: OCRExtractRequest): Promise<OCRExtractResponse> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.post<OCRExtractResponse>('/orcha/ocr/extract', payload, {
       headers: {
         'x-trace-id': traceId,
@@ -205,7 +212,7 @@ export const extractOCRText = async (payload: OCRExtractRequest): Promise<OCRExt
 export const createConversation = async (payload: CreateConversationRequest): Promise<Conversation> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.post<Conversation>('/conversations', payload, {
       headers: {
         'x-trace-id': traceId,
@@ -239,7 +246,7 @@ export const createConversation = async (payload: CreateConversationRequest): Pr
 export const getUserConversations = async (userId: number, limit: number = 50, offset: number = 0): Promise<Conversation[]> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.get<Conversation[]>(`/conversations/${userId}?limit=${limit}&offset=${offset}`, {
       headers: {
         'x-trace-id': traceId,
@@ -272,7 +279,7 @@ export const getUserConversations = async (userId: number, limit: number = 50, o
 export const getConversationDetails = async (userId: number, conversationId: number): Promise<Conversation> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.get<Conversation>(`/conversations/${userId}/${conversationId}`, {
       headers: {
         'x-trace-id': traceId,
@@ -306,7 +313,7 @@ export const getConversationDetails = async (userId: number, conversationId: num
 export const updateConversation = async (userId: number, conversationId: number, payload: UpdateConversationRequest): Promise<Conversation> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.put<Conversation>(`/conversations/${userId}/${conversationId}`, payload, {
       headers: {
         'x-trace-id': traceId,
@@ -339,7 +346,7 @@ export const updateConversation = async (userId: number, conversationId: number,
 export const deleteConversation = async (userId: number, conversationId: number): Promise<{ status: string; message: string }> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.delete<{ status: string; message: string }>(`/conversations/${userId}/${conversationId}`, {
       headers: {
         'x-trace-id': traceId,
@@ -371,7 +378,7 @@ export const deleteConversation = async (userId: number, conversationId: number)
 export const getPulse = async (userId: number): Promise<PulseResponse> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.get<PulseResponse>(`/pulse/${userId}`, {
       headers: {
         'x-trace-id': traceId,
@@ -403,7 +410,7 @@ export const getPulse = async (userId: number): Promise<PulseResponse> => {
 export const regeneratePulse = async (userId: number): Promise<PulseResponse> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.post<PulseResponse>(`/pulse/${userId}/regenerate`, {}, {
       headers: {
         'x-trace-id': traceId,
@@ -435,7 +442,7 @@ export const regeneratePulse = async (userId: number): Promise<PulseResponse> =>
 export const webSearch = async (payload: WebSearchRequest): Promise<WebSearchResponse> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.post<WebSearchResponse>('/orcha/search', payload, {
       headers: {
         'x-trace-id': traceId,
@@ -448,7 +455,7 @@ export const webSearch = async (payload: WebSearchRequest): Promise<WebSearchRes
     console.log('🔎 Search Query:', response.data.search_query);
     console.log('📊 Results Count:', response.data.results_count);
     console.log('🪙 Token Usage:', response.data.token_usage);
-    
+
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -473,7 +480,7 @@ export const webSearch = async (payload: WebSearchRequest): Promise<WebSearchRes
  * @throws AxiosError if the request fails
  */
 export const saveMemory = async (
-  userId: number, 
+  userId: number,
   content: string,
   options?: {
     title?: string | null;
@@ -484,7 +491,7 @@ export const saveMemory = async (
 ): Promise<{ status: string; message: string; memory_id?: number }> => {
   try {
     const traceId = uuidv4();
-    
+
     const payload = {
       user_id: userId,
       content: content,
@@ -493,7 +500,7 @@ export const saveMemory = async (
       source: options?.source || 'auto_extraction',
       tags: options?.tags || null
     };
-    
+
     const response = await api.post<{ status: string; message: string; memory_id?: number }>('/memory', payload, {
       headers: {
         'x-trace-id': traceId,
@@ -547,7 +554,7 @@ export const getMemory = async (
 }> => {
   try {
     const traceId = uuidv4();
-    
+
     const response = await api.get(`/memory/${userId}?limit=${limit}&offset=${offset}`, {
       headers: {
         'x-trace-id': traceId,
@@ -557,7 +564,7 @@ export const getMemory = async (
     console.log('🔍 Get Memory Response:', response.data);
     console.log(`📊 Total memories: ${response.data.total}`);
     console.log(`📝 Memories in response: ${response.data.memories?.length || 0}`);
-    
+
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
