@@ -159,6 +159,27 @@ export const translations = {
         'What are the management differences between Direct Billing (Tiers Payant) and Reimbursement Requests (DR)?',
       ],
     },
+
+    // AURA Assist
+    auraAssist: {
+      welcome: "Hi {userName}! I'm here to help. What do you need?",
+      greeting: "Hello! I'm AURA Assist, your personal data collection assistant. I'll help gather some information from you.",
+      askName: "To get started, could you please tell me your name?",
+      askAge: "Great! Now, may I ask how old you are?",
+      askGender: "Thank you! What is your gender?",
+      askNationality: "And what is your nationality?",
+      askLocation: "Finally, where are you currently located?",
+      thankYou: "Thank you for providing all the information! I'm now processing your details...",
+      extractionComplete: "Here's a summary of the information you provided:",
+      extractionSystemPrompt: "Analyze the provided conversation history. Extract the user's Name, Age, Gender, Nationality, and Location. Return the output as a structured summary with the values highlighted in Markdown bold.",
+      dataFields: {
+        name: "Name",
+        age: "Age",
+        gender: "Gender",
+        nationality: "Nationality",
+        location: "Location",
+      },
+    },
   },
 
   fr: {
@@ -320,6 +341,27 @@ export const translations = {
         'Quelle est la formule spécifique utilisée pour le calcul des primes et comment les coefficients prorata sont-ils appliqués ?',
         'Quelles sont les différences de gestion entre la Facturation Directe (Tiers Payant) et les Demandes de Remboursement (DR) ?',
       ],
+    },
+
+    // AURA Assist
+    auraAssist: {
+      welcome: "Salut {userName} ! Je suis là pour t'aider. De quoi as-tu besoin ?",
+      greeting: "Bonjour ! Je suis AURA Assist, votre assistant de collecte de données personnel. Je vais vous aider à recueillir quelques informations.",
+      askName: "Pour commencer, pourriez-vous me dire votre nom ?",
+      askAge: "Très bien ! Puis-je vous demander votre âge ?",
+      askGender: "Merci ! Quel est votre genre ?",
+      askNationality: "Et quelle est votre nationalité ?",
+      askLocation: "Enfin, où êtes-vous actuellement situé(e) ?",
+      thankYou: "Merci d'avoir fourni toutes les informations ! Je traite maintenant vos détails...",
+      extractionComplete: "Voici un résumé des informations que vous avez fournies :",
+      extractionSystemPrompt: "Analysez l'historique de la conversation fourni. Extrayez le Nom, l'Âge, le Genre, la Nationalité et la Localisation de l'utilisateur. Retournez le résultat sous forme de résumé structuré avec les valeurs en gras Markdown.",
+      dataFields: {
+        name: "Nom",
+        age: "Âge",
+        gender: "Genre",
+        nationality: "Nationalité",
+        location: "Localisation",
+      },
     },
   },
 };

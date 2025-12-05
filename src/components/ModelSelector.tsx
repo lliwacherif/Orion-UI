@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useModel, ModelType } from '../context/ModelContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useConversation } from '../context/ConversationContext';
 import { translations } from '../translations';
 
 const ModelSelector: React.FC = () => {
   const { currentModel, setModel, isAgentMode, setAgentMode, isProMode, setProMode } = useModel();
   const { language } = useLanguage();
+  const { createNewConversation, clearCurrentConversation } = useConversation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -13,6 +15,7 @@ const ModelSelector: React.FC = () => {
     { id: 'chat' as ModelType, name: 'AURA' },
     { id: 'ocr' as ModelType, name: 'OCR' },
     { id: 'opencare' as ModelType, name: 'OpenCare' },
+    { id: 'aura-assist' as ModelType, name: 'AURA Assist' },
   ];
 
   const selectedModel = models.find(m => m.id === currentModel) || models[0];
@@ -29,8 +32,14 @@ const ModelSelector: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleModelChange = (modelId: ModelType) => {
+  const handleModelChange = async (modelId: ModelType) => {
     setModel(modelId);
+    
+    // When switching to AURA Assist, reset to a new empty chat
+    if (modelId === 'aura-assist') {
+      clearCurrentConversation();
+      await createNewConversation();
+    }
   };
 
   const t = translations[language].modelSelector;

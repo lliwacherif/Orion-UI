@@ -20,6 +20,7 @@ import AgentNotification, { type AgentNotificationData } from './AgentNotificati
 import { AgentTaskService } from '../services/agentTaskService';
 import PlanWithAgent from './PlanWithAgent';
 import AgentTaskScheduler from './AgentTaskScheduler';
+import AuraAssistChat from './AuraAssistChat';
 
 const ChatWindow: React.FC = () => {
   const { session } = useSession();
@@ -466,6 +467,8 @@ const ChatWindow: React.FC = () => {
         {/* Render different interface based on model */}
         {currentModel === 'ocr' ? (
           <OCRExtractor />
+        ) : currentModel === 'aura-assist' ? (
+          <AuraAssistChat />
         ) : isAgentMode ? (
           /* Agent Mode Layout */
           <div className="flex-1 overflow-hidden relative p-6 bg-gradient-to-br from-gray-50 to-blue-50/30">

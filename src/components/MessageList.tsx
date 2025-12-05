@@ -26,7 +26,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, 
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pb-32">
-      {messages.length === 0 && !isLoading && (currentModel === 'chat' || currentModel === 'opencare') && (
+      {messages.length === 0 && !isLoading && (currentModel === 'chat' || currentModel === 'opencare') && currentModel !== 'aura-assist' && (
         <EmptyState onQuestionSelect={onQuestionSelect} />
       )}
 
