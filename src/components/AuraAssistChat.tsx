@@ -104,18 +104,6 @@ const AuraAssistChat: React.FC = () => {
   // Generate unique ID
   const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  // Add assistant message helper
-  const addAssistantMessage = useCallback((messageKey: MessageKey, customContent?: string) => {
-    const newMessage: AuraAssistMessage = {
-      id: generateId(),
-      role: 'assistant',
-      messageKey,
-      content: customContent,
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, newMessage]);
-  }, []);
-
   // Initialize with welcome message - only once
   useEffect(() => {
     if (hasInitialized.current) return;
@@ -180,7 +168,7 @@ const AuraAssistChat: React.FC = () => {
   };
 
   // Handle data extraction
-  const performExtraction = useCallback(async (data: CollectedData, conversationHistory: AuraAssistMessage[]) => {
+  const performExtraction = useCallback(async (_data: CollectedData, conversationHistory: AuraAssistMessage[]) => {
     if (!session || !user) return;
 
     setIsLoading(true);
@@ -500,10 +488,12 @@ const AuraAssistChat: React.FC = () => {
               <div className="mt-3 flex justify-center">
                 <div className="flex items-center gap-2">
                   {['name', 'age', 'gender', 'nationality', 'location'].map((s, idx) => {
-                    const stages = ['name', 'age', 'gender', 'nationality', 'location'];
-                    const currentIdx = stages.indexOf(stage);
-                    const isCompleted = idx < currentIdx || stage === 'extracting' || stage === 'complete';
-                    const isCurrent = s === stage;
+                    const dataStages: string[] = ['name', 'age', 'gender', 'nationality', 'location'];
+                    const currentStage: string = stage;
+                    const currentIdx = dataStages.indexOf(currentStage);
+                    const isExtractionPhase = currentStage === 'extracting' || currentStage === 'complete';
+                    const isCompleted = (currentIdx !== -1 && idx < currentIdx) || isExtractionPhase;
+                    const isCurrent = s === currentStage;
                     
                     return (
                       <React.Fragment key={s}>
