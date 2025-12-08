@@ -16,7 +16,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { register } = useAuth();
   const { language, toggleLanguage } = useLanguage();
 
@@ -61,7 +61,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
   return (
     // Main container with background image
-    <div 
+    <div
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
       style={{
         backgroundImage: 'url(/assets/background.jpg)',
@@ -80,22 +80,22 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 919-9" />
         </svg>
       </button>
-      
+
       {/* Logo at the top */}
-      <img 
-        src="/assets/AURA_Icon.png" 
-        alt="Aura Logo" 
-        className="absolute top-8 sm:top-12 z-20 h-12 w-12 sm:h-14 sm:w-14 object-contain" 
+      <img
+        src="/assets/orion logo.png"
+        alt="Orion Logo"
+        className="absolute top-8 sm:top-12 z-20 h-12 w-12 sm:h-14 sm:w-14 object-contain"
       />
 
       {/* Blue shadow effect container */}
       <div className="relative w-[90vw] sm:w-[85vw] md:w-[70vw] lg:w-[50vw] xl:w-[416px] max-w-[416px] px-4 sm:px-0">
         {/* Blue shadow underneath the card */}
         <div className="absolute inset-0 translate-y-4 transform rounded-3xl bg-blue-500/35 blur-xl"></div>
-        
+
         {/* Register Card */}
         <div className="relative w-full max-h-[90vh] overflow-y-auto overflow-hidden rounded-3xl bg-white/95 backdrop-blur-sm shadow-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          
+
           {/* Spiral Image: Positioned in bottom left */}
           <img
             src="/assets/spiral.png"
@@ -219,7 +219,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 className="w-full rounded-lg bg-gradient-to-r from-green-400 to-cyan-500 py-3 px-4 text-base font-medium text-white shadow-sm hover:from-green-500 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 disabled={loading}
               >
-                {loading 
+                {loading
                   ? (language === 'en' ? 'Creating account...' : 'Création du compte...')
                   : (language === 'en' ? 'Create Account' : 'Créer un compte')
                 }

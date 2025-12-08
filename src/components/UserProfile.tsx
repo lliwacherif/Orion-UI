@@ -528,8 +528,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
               {/* Description */}
               <p className="text-sm text-white/90 mb-4">
                 {language === 'en'
-                  ? 'AURA tries to remember content from your recent chats, but may forget certain elements over time. Stored elements are never forgotten.'
-                  : 'AURA s\'efforce de tenir compte du contenu de vos chats récents, mais peut oublier certains éléments au fil du temps. Les éléments mémorisés ne sont jamais oubliés.'}
+                  ? 'Orion tries to remember content from your recent chats, but may forget certain elements over time. Stored elements are never forgotten.'
+                  : 'Orion s\'efforce de tenir compte du contenu de vos chats récents, mais peut oublier certains éléments au fil du temps. Les éléments mémorisés ne sont jamais oubliés.'}
                 {' '}
                 <button className="text-white hover:underline font-medium">
                   {language === 'en' ? 'Learn more' : 'En savoir plus'}

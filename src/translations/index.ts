@@ -2,7 +2,7 @@ export const translations = {
   en: {
     // Login page
     login: {
-      title: 'AURA',
+      title: 'Orion',
       subtitle: 'Multi-Agentic AI Interface',
       userIdLabel: 'User ID',
       userIdPlaceholder: 'Enter your user ID',
@@ -16,7 +16,7 @@ export const translations = {
 
     // Chat window
     chat: {
-      title: 'AURA',
+      title: 'Orion',
       tenant: 'Tenant',
       clearButton: 'Clear',
       logoutButton: 'Logout',
@@ -28,7 +28,7 @@ export const translations = {
     // Message list
     messages: {
       emptyTitle: 'No messages yet',
-      emptySubtitle: 'Send a message to see AURA in action',
+      emptySubtitle: 'Send a message to see Orion in action',
     },
 
     // Message input
@@ -148,22 +148,12 @@ export const translations = {
       title: 'Models',
     },
 
-    // OpenCare
-    openCare: {
-      welcome: 'Welcome, I am AURA. I assist you on OpenCare to ensure everything is smooth and pleasant. How can I be of help today?',
-      questions: [
-        'How does the system distinguish between Offshore and Onshore processes?',
-        'How are Reinsurance and Retrocession models configured in OpenCare?',
-        'How does OpenCare handle "Institutional Products" like the IPM in Senegal?',
-        'What is the specific formula used for calculating premiums and how are prorata coefficients applied?',
-        'What are the management differences between Direct Billing (Tiers Payant) and Reimbursement Requests (DR)?',
-      ],
-    },
 
-    // AURA Assist
-    auraAssist: {
+
+    // Orion Assist
+    orionAssist: {
       welcome: "Hi {userName}! I'm here to help. What do you need?",
-      greeting: "Hello! I'm AURA Assist, your personal data collection assistant. I'll help gather some information from you.",
+      greeting: "Hello! I'm Orion Assist, your personal data collection assistant. I'll help gather some information from you.",
       askName: "To get started, could you please tell me your name?",
       askAge: "Great! Now, may I ask how old you are?",
       askGender: "Thank you! What is your gender?",
@@ -185,7 +175,7 @@ export const translations = {
   fr: {
     // Login page
     login: {
-      title: 'AURA',
+      title: 'Orion',
       subtitle: 'Interface IA Multi-Agentique',
       userIdLabel: 'ID Utilisateur',
       userIdPlaceholder: 'Entrez votre ID utilisateur',
@@ -199,7 +189,7 @@ export const translations = {
 
     // Chat window
     chat: {
-      title: 'AURA',
+      title: 'Orion',
       tenant: 'Locataire',
       clearButton: 'Effacer',
       logoutButton: 'Déconnexion',
@@ -211,7 +201,7 @@ export const translations = {
     // Message list
     messages: {
       emptyTitle: 'Aucun message pour le moment',
-      emptySubtitle: 'Envoyez un message pour voir AURA en action',
+      emptySubtitle: 'Envoyez un message pour voir Orion en action',
     },
 
     // Message input
@@ -331,22 +321,12 @@ export const translations = {
       title: 'Modèles',
     },
 
-    // OpenCare
-    openCare: {
-      welcome: "Bienvenue, je suis AURA. Je vous assiste sur OpenCare pour que tout soit fluide et agréable. Comment puis-je vous être utile aujourd'hui ?",
-      questions: [
-        'Comment le système distingue-t-il les processus Offshore et Onshore ?',
-        'Comment les modèles de Réassurance et de Rétrocession sont-ils configurés dans OpenCare ?',
-        'Comment OpenCare gère-t-il les "Produits Institutionnels" comme l\'IPM au Sénégal ?',
-        'Quelle est la formule spécifique utilisée pour le calcul des primes et comment les coefficients prorata sont-ils appliqués ?',
-        'Quelles sont les différences de gestion entre la Facturation Directe (Tiers Payant) et les Demandes de Remboursement (DR) ?',
-      ],
-    },
 
-    // AURA Assist
-    auraAssist: {
+
+    // Orion Assist
+    orionAssist: {
       welcome: "Salut {userName} ! Je suis là pour t'aider. De quoi as-tu besoin ?",
-      greeting: "Bonjour ! Je suis AURA Assist, votre assistant de collecte de données personnel. Je vais vous aider à recueillir quelques informations.",
+      greeting: "Bonjour ! Je suis Orion Assist, votre assistant de collecte de données personnel. Je vais vous aider à recueillir quelques informations.",
       askName: "Pour commencer, pourriez-vous me dire votre nom ?",
       askAge: "Très bien ! Puis-je vous demander votre âge ?",
       askGender: "Merci ! Quel est votre genre ?",

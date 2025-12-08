@@ -122,7 +122,7 @@ textarea.gradient-focus:focus {
   transform: translateZ(0);
 }
 
-/* Fade-in animation for AURA Assist */
+/* Fade-in animation for Orion Assist */
 @keyframes fadeIn {
   from {
     opacity: 0;

@@ -12,10 +12,10 @@ const ModelSelector: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const models = [
-    { id: 'chat' as ModelType, name: 'AURA' },
+    { id: 'chat' as ModelType, name: 'Orion' },
     { id: 'ocr' as ModelType, name: 'OCR' },
-    { id: 'opencare' as ModelType, name: 'OpenCare' },
-    { id: 'aura-assist' as ModelType, name: 'AURA Assist' },
+
+    { id: 'orion-assist' as ModelType, name: 'Orion Assist' },
   ];
 
   const selectedModel = models.find(m => m.id === currentModel) || models[0];
@@ -34,9 +34,9 @@ const ModelSelector: React.FC = () => {
 
   const handleModelChange = async (modelId: ModelType) => {
     setModel(modelId);
-    
-    // When switching to AURA Assist, reset to a new empty chat
-    if (modelId === 'aura-assist') {
+
+    // When switching to Orion Assist, reset to a new empty chat
+    if (modelId === 'orion-assist') {
       clearCurrentConversation();
       await createNewConversation();
     }
@@ -105,7 +105,7 @@ const ModelSelector: React.FC = () => {
             ))}
           </div>
 
-          {/* AURA Pro Toggle (Gemini 2.5) */}
+          {/* Orion Pro Toggle (Gemini 2.5) */}
           <div className="px-3 pb-2 pt-1 border-t border-white/10">
             <button
               type="button"
@@ -124,7 +124,7 @@ const ModelSelector: React.FC = () => {
                 {/* Label */}
                 <div className="flex flex-col text-left">
                   <span className="text-white font-medium text-sm">
-                    AURA Pro
+                    Orion Pro
                   </span>
                 </div>
               </div>
@@ -135,7 +135,7 @@ const ModelSelector: React.FC = () => {
                   }`}
               >
                 <span className="sr-only">
-                  Use AURA Pro
+                  Use Orion Pro
                 </span>
                 <span
                   aria-hidden="true"

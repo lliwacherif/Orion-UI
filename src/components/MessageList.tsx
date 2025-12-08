@@ -13,7 +13,7 @@ interface MessageListProps {
   onQuestionSelect?: (question: string) => void;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, onRegenerateMessage, onQuestionSelect }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, onRegenerateMessage }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentModel } = useModel();
   const { language } = useLanguage();
@@ -26,8 +26,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = false, 
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar p-4 pb-32">
-      {messages.length === 0 && !isLoading && (currentModel === 'chat' || currentModel === 'opencare') && (
-        <EmptyState onQuestionSelect={onQuestionSelect} />
+      {messages.length === 0 && !isLoading && currentModel === 'chat' && (
+        <EmptyState />
       )}
 
       {messages.map((message, index) => (

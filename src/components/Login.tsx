@@ -21,7 +21,7 @@ const Login: React.FC = () => {
 
   return (
     // Main container with background image
-    <div 
+    <div
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
       style={{
         backgroundImage: 'url(/assets/background.jpg)',
@@ -31,20 +31,20 @@ const Login: React.FC = () => {
       }}
     >
       {/* Logo at the top */}
-      <img 
-        src="/assets/AURA_Icon.png" 
-        alt="Aura Logo" 
-        className="absolute top-8 sm:top-12 z-20 h-12 w-12 sm:h-14 sm:w-14 object-contain" 
+      <img
+        src="/assets/orion logo.png"
+        alt="Orion Logo"
+        className="absolute top-8 sm:top-12 z-20 h-12 w-12 sm:h-14 sm:w-14 object-contain"
       />
 
       {/* Blue shadow effect container */}
       <div className="relative w-[90vw] sm:w-[85vw] md:w-[70vw] lg:w-[50vw] xl:w-[416px] max-w-[416px] px-4 sm:px-0">
         {/* Blue shadow underneath the card */}
         <div className="absolute inset-0 translate-y-4 transform rounded-3xl bg-blue-500/35 blur-xl"></div>
-        
+
         {/* Login Card */}
         <div className="relative w-full overflow-hidden rounded-3xl bg-white/95 backdrop-blur-sm shadow-2xl">
-          
+
           {/* Mask Image: Positioned in bottom left */}
           <img
             src="/assets/mask.png"
@@ -124,7 +124,7 @@ const Login: React.FC = () => {
             {/* Social Logins */}
             <div className="space-y-3">
               {/* Google Button */}
-              <button 
+              <button
                 type="button"
                 className="flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
               >
@@ -135,7 +135,7 @@ const Login: React.FC = () => {
               </button>
 
               {/* Microsoft Button */}
-              <button 
+              <button
                 type="button"
                 className="flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
               >

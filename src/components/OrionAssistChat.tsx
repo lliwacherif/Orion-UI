@@ -10,15 +10,15 @@ import type { ChatRequest } from '../types/orcha';
 type CollectionStage = 'welcome' | 'name' | 'age' | 'gender' | 'nationality' | 'location' | 'extracting' | 'complete';
 
 // Message types for translation keys
-type MessageKey = 
-  | 'welcome' 
-  | 'greeting' 
-  | 'askName' 
-  | 'askAge' 
-  | 'askGender' 
-  | 'askNationality' 
-  | 'askLocation' 
-  | 'thankYou' 
+type MessageKey =
+  | 'welcome'
+  | 'greeting'
+  | 'askName'
+  | 'askAge'
+  | 'askGender'
+  | 'askNationality'
+  | 'askLocation'
+  | 'thankYou'
   | 'extractionComplete'
   | 'error'
   | 'custom';
@@ -31,7 +31,7 @@ interface CollectedData {
   location: string;
 }
 
-interface AuraAssistMessage {
+interface OrionAssistMessage {
   id: string;
   role: 'user' | 'assistant';
   messageKey?: MessageKey; // For translatable assistant messages
@@ -39,11 +39,11 @@ interface AuraAssistMessage {
   timestamp: Date;
 }
 
-const AuraAssistChat: React.FC = () => {
+const OrionAssistChat: React.FC = () => {
   const { user } = useAuth();
   const { session } = useSession();
   const { language } = useLanguage();
-  const [messages, setMessages] = useState<AuraAssistMessage[]>([]);
+  const [messages, setMessages] = useState<OrionAssistMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [stage, setStage] = useState<CollectionStage>('welcome');
   const [collectedData, setCollectedData] = useState<CollectedData>({
@@ -57,16 +57,16 @@ const AuraAssistChat: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const hasInitialized = useRef(false);
-  
-  const t = translations[language].auraAssist;
+
+  const t = translations[language].orionAssist;
   const userName = user?.full_name || user?.username || (language === 'en' ? 'there' : 'toi');
 
   // Get translated content for a message
-  const getMessageContent = useCallback((message: AuraAssistMessage): string => {
+  const getMessageContent = useCallback((message: OrionAssistMessage): string => {
     if (message.role === 'user' || message.messageKey === 'custom') {
       return message.content || '';
     }
-    
+
     // Translate based on messageKey
     switch (message.messageKey) {
       case 'welcome':
@@ -88,8 +88,8 @@ const AuraAssistChat: React.FC = () => {
       case 'extractionComplete':
         return t.extractionComplete;
       case 'error':
-        return language === 'en' 
-          ? 'Sorry, there was an error processing your data. Please try again.' 
+        return language === 'en'
+          ? 'Sorry, there was an error processing your data. Please try again.'
           : 'Désolé, une erreur s\'est produite lors du traitement de vos données. Veuillez réessayer.';
       default:
         return message.content || '';
@@ -107,10 +107,10 @@ const AuraAssistChat: React.FC = () => {
   // Initialize with welcome message - only once
   useEffect(() => {
     if (hasInitialized.current) return;
-    
+
     if (stage === 'welcome' && messages.length === 0) {
       hasInitialized.current = true;
-      
+
       // Add welcome message
       setMessages([{
         id: generateId(),
@@ -118,7 +118,7 @@ const AuraAssistChat: React.FC = () => {
         messageKey: 'welcome',
         timestamp: new Date(),
       }]);
-      
+
       // After a short delay, add greeting
       setTimeout(() => {
         setMessages(prev => [...prev, {
@@ -127,7 +127,7 @@ const AuraAssistChat: React.FC = () => {
           messageKey: 'greeting',
           timestamp: new Date(),
         }]);
-        
+
         // Then add first question
         setTimeout(() => {
           setMessages(prev => [...prev, {
@@ -140,7 +140,7 @@ const AuraAssistChat: React.FC = () => {
         }, 800);
       }, 1000);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Get next question key based on stage
@@ -168,11 +168,11 @@ const AuraAssistChat: React.FC = () => {
   };
 
   // Handle data extraction
-  const performExtraction = useCallback(async (_data: CollectedData, conversationHistory: AuraAssistMessage[]) => {
+  const performExtraction = useCallback(async (_data: CollectedData, conversationHistory: OrionAssistMessage[]) => {
     if (!session || !user) return;
 
     setIsLoading(true);
-    
+
     try {
       // Build conversation history string with translated content
       const historyText = conversationHistory
@@ -191,9 +191,9 @@ const AuraAssistChat: React.FC = () => {
         conversation_history: [],
       };
 
-      console.log('🔍 AURA Assist - Sending extraction request...');
+      console.log('🔍 Orion Assist - Sending extraction request...');
       const response = await chat(extractionRequest);
-      
+
       if (response.message) {
         // Add extraction complete message
         setMessages(prev => [...prev, {
@@ -202,7 +202,7 @@ const AuraAssistChat: React.FC = () => {
           messageKey: 'extractionComplete',
           timestamp: new Date(),
         }]);
-        
+
         // Add the AI-generated summary after a short delay
         setTimeout(() => {
           setMessages(prev => [...prev, {
@@ -216,7 +216,7 @@ const AuraAssistChat: React.FC = () => {
         }, 500);
       }
     } catch (error) {
-      console.error('❌ AURA Assist extraction error:', error);
+      console.error('❌ Orion Assist extraction error:', error);
       setMessages(prev => [...prev, {
         id: generateId(),
         role: 'assistant',
@@ -232,12 +232,12 @@ const AuraAssistChat: React.FC = () => {
   // Handle user input submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!inputValue.trim() || isLoading || stage === 'welcome' || stage === 'extracting' || stage === 'complete') {
       return;
     }
 
-    const userMessage: AuraAssistMessage = {
+    const userMessage: OrionAssistMessage = {
       id: generateId(),
       role: 'user',
       content: inputValue.trim(),
@@ -247,7 +247,7 @@ const AuraAssistChat: React.FC = () => {
     // Update messages with user input
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
-    
+
     // Update collected data based on current stage
     const newCollectedData = { ...collectedData };
     switch (stage) {
@@ -276,13 +276,13 @@ const AuraAssistChat: React.FC = () => {
 
     // Add a small delay for natural conversation flow
     setTimeout(() => {
-      const assistantMessage: AuraAssistMessage = {
+      const assistantMessage: OrionAssistMessage = {
         id: generateId(),
         role: 'assistant',
         messageKey: nextQuestionKey,
         timestamp: new Date(),
       };
-      
+
       setMessages(prev => [...prev, assistantMessage]);
       setStage(nextStage);
 
@@ -315,18 +315,18 @@ const AuraAssistChat: React.FC = () => {
       nationality: '',
       location: '',
     });
-    
+
     // Re-trigger initialization
     setTimeout(() => {
       hasInitialized.current = true;
-      
+
       setMessages([{
         id: generateId(),
         role: 'assistant',
         messageKey: 'welcome',
         timestamp: new Date(),
       }]);
-      
+
       setTimeout(() => {
         setMessages(prev => [...prev, {
           id: generateId(),
@@ -334,7 +334,7 @@ const AuraAssistChat: React.FC = () => {
           messageKey: 'greeting',
           timestamp: new Date(),
         }]);
-        
+
         setTimeout(() => {
           setMessages(prev => [...prev, {
             id: generateId(),
@@ -356,27 +356,32 @@ const AuraAssistChat: React.FC = () => {
           // Centered welcome state (loading)
           <div className="flex-1 flex flex-col items-center justify-center h-full min-h-[400px]">
             <div className="max-w-lg text-center space-y-6 animate-fade-in">
-              {/* AURA Assist Icon */}
+              {/* Orion Assist Icon */}
               <div className="flex justify-center mb-4">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#003A70] to-[#0059b3] flex items-center justify-center shadow-xl">
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#003A70] to-[#0059b3] flex items-center justify-center shadow-xl overflow-hidden">
+                    <img
+                      src="/assets/orion logo.png"
+                      alt="Orion Assist Logo"
+                      className="w-16 h-16 object-contain"
+                    />
                   </div>
                   {/* Pulse effect */}
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#003A70] to-[#0059b3] animate-ping opacity-20"></div>
                 </div>
               </div>
-              
+
               {/* Welcome Title */}
-              <h1 className="text-2xl font-bold text-[#003A70]">
-                {t.welcome.replace('{userName}', userName)}
-              </h1>
-              
+              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#003A70] to-[#0059b3]">
+                Orion Assist
+              </h2>
+              <p className="text-gray-600 text-lg">
+                {t?.welcome ? t.welcome.replace('{userName}', userName) : ''}
+              </p>
+
               {/* Subtitle */}
               <p className="text-gray-600 text-sm max-w-md mx-auto">
-                {language === 'en' 
+                {language === 'en'
                   ? 'I\'ll help collect some basic information from you through a quick conversation.'
                   : 'Je vais vous aider à recueillir quelques informations de base à travers une courte conversation.'}
               </p>
@@ -391,19 +396,18 @@ const AuraAssistChat: React.FC = () => {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-[#003A70] to-[#0059b3] text-white rounded-br-md'
-                      : 'bg-white/80 backdrop-blur-sm text-gray-800 rounded-bl-md border border-gray-100 shadow-sm'
-                  }`}
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
+                    ? 'bg-gradient-to-r from-[#003A70] to-[#0059b3] text-white rounded-br-md'
+                    : 'bg-white/80 backdrop-blur-sm text-gray-800 rounded-bl-md border border-gray-100 shadow-sm'
+                    }`}
                 >
                   {message.role === 'assistant' ? (
-                    <div 
+                    <div
                       className="prose prose-sm max-w-none text-gray-800"
-                      dangerouslySetInnerHTML={{ 
+                      dangerouslySetInnerHTML={{
                         __html: getMessageContent(message)
                           .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#003A70]">$1</strong>')
-                          .replace(/\n/g, '<br />') 
+                          .replace(/\n/g, '<br />')
                       }}
                     />
                   ) : (
@@ -412,7 +416,7 @@ const AuraAssistChat: React.FC = () => {
                 </div>
               </div>
             ))}
-            
+
             {/* Loading indicator */}
             {isLoading && (
               <div className="flex justify-start animate-fade-in">
@@ -430,7 +434,7 @@ const AuraAssistChat: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Spacer to ensure last message is visible above input */}
             <div className="h-4" />
             <div ref={messagesEndRef} />
@@ -483,7 +487,7 @@ const AuraAssistChat: React.FC = () => {
                   </svg>
                 </button>
               </div>
-              
+
               {/* Progress indicator */}
               <div className="mt-3 flex justify-center">
                 <div className="flex items-center gap-2">
@@ -494,24 +498,22 @@ const AuraAssistChat: React.FC = () => {
                     const isExtractionPhase = currentStage === 'extracting' || currentStage === 'complete';
                     const isCompleted = (currentIdx !== -1 && idx < currentIdx) || isExtractionPhase;
                     const isCurrent = s === currentStage;
-                    
+
                     return (
                       <React.Fragment key={s}>
                         <div
-                          className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                            isCompleted
-                              ? 'bg-gradient-to-r from-green-400 to-emerald-500 scale-100'
-                              : isCurrent
+                          className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${isCompleted
+                            ? 'bg-gradient-to-r from-green-400 to-emerald-500 scale-100'
+                            : isCurrent
                               ? 'bg-gradient-to-r from-[#003A70] to-[#0059b3] scale-125 animate-pulse'
                               : 'bg-gray-300 scale-100'
-                          }`}
-                          title={t.dataFields[s as keyof typeof t.dataFields]}
+                            }`}
+                          title={t?.dataFields ? t.dataFields[s as keyof typeof t.dataFields] : ''}
                         />
                         {idx < 4 && (
                           <div
-                            className={`w-6 h-0.5 transition-all duration-300 ${
-                              isCompleted ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gray-200'
-                            }`}
+                            className={`w-6 h-0.5 transition-all duration-300 ${isCompleted ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gray-200'
+                              }`}
                           />
                         )}
                       </React.Fragment>
@@ -527,4 +529,4 @@ const AuraAssistChat: React.FC = () => {
   );
 };
 
-export default AuraAssistChat;
+export default OrionAssistChat;

@@ -50,7 +50,7 @@ const DocumentCanvas: React.FC<DocumentCanvasProps> = ({ content, onClose, onCon
       <div className="md:hidden pt-3 pb-2 bg-white rounded-t-3xl flex justify-center">
         <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
       </div>
-      
+
       {/* Header */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-2 md:gap-3">
@@ -61,26 +61,25 @@ const DocumentCanvas: React.FC<DocumentCanvasProps> = ({ content, onClose, onCon
           </div>
           <div>
             <h3 className="text-base md:text-lg font-semibold text-gray-900">
-              AURA Canvas
+              Orion Canvas
             </h3>
             <p className="text-xs md:text-sm text-gray-500 hidden sm:block">
               {language === 'en' ? 'View and edit the extracted content' : 'Voir et modifier le contenu extrait'}
             </p>
           </div>
         </div>
-        
+
         {/* Action buttons */}
         <div className="flex items-center gap-1 md:gap-2">
           {/* Edit/View Toggle */}
           <button
             onClick={toggleEdit}
-            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-sm md:text-base font-medium transition-all ${
-              isEditing 
+            className={`px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-sm md:text-base font-medium transition-all ${isEditing
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
-            {isEditing 
+            {isEditing
               ? (language === 'en' ? 'View' : 'Voir')
               : (language === 'en' ? 'Edit' : 'Éditer')
             }
@@ -147,7 +146,7 @@ const DocumentCanvas: React.FC<DocumentCanvasProps> = ({ content, onClose, onCon
 
           {/* Word count */}
           <div className="mt-3 md:mt-4 text-xs md:text-sm text-gray-500 text-right">
-            {language === 'en' ? 'Words:' : 'Mots:'} {editableContent.split(/\s+/).filter(word => word.length > 0).length} | 
+            {language === 'en' ? 'Words:' : 'Mots:'} {editableContent.split(/\s+/).filter(word => word.length > 0).length} |
             {language === 'en' ? ' Characters:' : ' Caractères:'} {editableContent.length}
           </div>
         </div>
@@ -156,13 +155,13 @@ const DocumentCanvas: React.FC<DocumentCanvasProps> = ({ content, onClose, onCon
       {/* Footer with formatting tips */}
       <div className="px-3 md:px-6 py-2 md:py-3 border-t border-gray-200 bg-gray-50">
         <p className="text-xs text-gray-500 text-center hidden md:block">
-          {isEditing 
-            ? (language === 'en' 
-                ? 'Tip: You can edit the text above. Changes are automatically saved.'
-                : 'Astuce: Vous pouvez modifier le texte ci-dessus. Les modifications sont automatiquement enregistrées.')
+          {isEditing
+            ? (language === 'en'
+              ? 'Tip: You can edit the text above. Changes are automatically saved.'
+              : 'Astuce: Vous pouvez modifier le texte ci-dessus. Les modifications sont automatiquement enregistrées.')
             : (language === 'en'
-                ? 'Click "Edit" to modify the document content.'
-                : 'Cliquez sur "Éditer" pour modifier le contenu du document.')
+              ? 'Click "Edit" to modify the document content.'
+              : 'Cliquez sur "Éditer" pour modifier le contenu du document.')
           }
         </p>
       </div>

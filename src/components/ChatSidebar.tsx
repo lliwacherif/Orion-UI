@@ -335,8 +335,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
         <div className="p-4 border-b border-white/10 flex-shrink-0 flex items-center justify-between">
           <img
             src="/assets/AURA_Icon.png"
-            alt="AURA Logo"
-            className="w-10 h-10 object-contain"
+            alt="Orion Logo"
+            className="w-12 h-12 rounded-xl object-contain"
           />
           <button
             onClick={onToggle}
