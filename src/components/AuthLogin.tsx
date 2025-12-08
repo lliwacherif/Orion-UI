@@ -192,7 +192,7 @@ const AuthLogin: React.FC<AuthLoginProps> = ({ onSwitchToRegister }) => {
 
       {/* Footer Text */}
       <div className="absolute bottom-4 sm:bottom-8 text-xs font-medium tracking-wider" style={{ color: '#003A70' }}>
-        POWERED BY VAERDIA
+        POWERED BY CherifCorp Technologies
       </div>
     </div>
   );

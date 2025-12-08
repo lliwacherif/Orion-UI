@@ -10,7 +10,7 @@ export const translations = {
       tenantIdOptional: '(optional)',
       tenantIdPlaceholder: 'Enter tenant ID (optional)',
       continueButton: 'Continue',
-      demoText: 'AI Powered Solution by VAERDIA',
+      demoText: 'AI Powered Solution by CherifCorp Technologies',
       required: '*',
     },
 
@@ -183,7 +183,7 @@ export const translations = {
       tenantIdOptional: '(optionnel)',
       tenantIdPlaceholder: 'Entrez l\'ID locataire (optionnel)',
       continueButton: 'Continuer',
-      demoText: 'Solution IA Propulsée par VAERDIA',
+      demoText: 'Solution IA Propulsée par CherifCorp Technologies',
       required: '*',
     },
 

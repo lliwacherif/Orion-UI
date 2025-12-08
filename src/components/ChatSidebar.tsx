@@ -514,7 +514,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
 
           {/* Branding text */}
           <p className="text-xs text-white/60 text-center font-light">
-            {language === 'en' ? 'AI-Powered Chat by VAERDIA' : 'Chat IA par VAERDIA'}
+            {language === 'en' ? 'AI-Powered Chat by CherifCorp Technologies' : 'Chat IA par CherifCorp Technologies'}
           </p>
         </div>
       </div>
