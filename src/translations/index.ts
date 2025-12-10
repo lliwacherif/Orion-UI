@@ -153,7 +153,7 @@ export const translations = {
     // Orion Assist
     orionAssist: {
       welcome: "Hi {userName}! I'm here to help. What do you need?",
-      greeting: "Hello! I'm Orion Assist, your personal data collection assistant. I'll help gather some information from you.",
+      greeting: "Hello! I'm Orion - Chrysus, your personal data collection assistant. I'll help gather some information from you.",
       askName: "To get started, could you please tell me your name?",
       askAge: "Great! Now, may I ask how old you are?",
       askGender: "Thank you! What is your gender?",
@@ -326,7 +326,7 @@ export const translations = {
     // Orion Assist
     orionAssist: {
       welcome: "Salut {userName} ! Je suis là pour t'aider. De quoi as-tu besoin ?",
-      greeting: "Bonjour ! Je suis Orion Assist, votre assistant de collecte de données personnel. Je vais vous aider à recueillir quelques informations.",
+      greeting: "Bonjour ! Je suis Orion - Chrysus, votre assistant de collecte de données personnel. Je vais vous aider à recueillir quelques informations.",
       askName: "Pour commencer, pourriez-vous me dire votre nom ?",
       askAge: "Très bien ! Puis-je vous demander votre âge ?",
       askGender: "Merci ! Quel est votre genre ?",

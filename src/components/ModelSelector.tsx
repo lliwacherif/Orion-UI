@@ -15,7 +15,7 @@ const ModelSelector: React.FC = () => {
     { id: 'chat' as ModelType, name: 'Orion' },
     { id: 'ocr' as ModelType, name: 'OCR' },
 
-    { id: 'orion-assist' as ModelType, name: 'Orion Assist' },
+    { id: 'orion-assist' as ModelType, name: 'Orion - Chrysus' },
   ];
 
   const selectedModel = models.find(m => m.id === currentModel) || models[0];
