@@ -148,7 +148,7 @@ const OrionAssistChat: React.FC = () => {
         {/* Header / Logo Area */}
         <div className="text-center mb-8 animate-fade-in">
 
-          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#003A70] to-[#0059b3]">
+          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#558EFA] to-[#0059b3]">
             Orion - Chrysus
           </h2>
           <p className="text-gray-500 mt-2 font-medium">Financial Intelligence & Prediction</p>
@@ -162,7 +162,7 @@ const OrionAssistChat: React.FC = () => {
             <button
               onClick={() => setPredictionType('STOCK')}
               className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${predictionType === 'STOCK'
-                ? 'bg-white text-[#003A70] shadow-md'
+                ? 'bg-white text-[#558EFA] shadow-md'
                 : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
@@ -190,7 +190,7 @@ const OrionAssistChat: React.FC = () => {
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value)}
                 placeholder={predictionType === 'STOCK' ? "Enter Ticker..." : "Enter Coin Name..."}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#003A70]/20 focus:border-[#003A70] outline-none transition bg-white/50 backdrop-blur-sm"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#558EFA]/20 focus:border-[#558EFA] outline-none transition bg-white/50 backdrop-blur-sm"
               />
             </div>
 
@@ -200,7 +200,7 @@ const OrionAssistChat: React.FC = () => {
               className={`w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all duration-300 transform active:scale-95 flex items-center justify-center gap-2 ${isLoading
                 ? 'bg-gray-400 cursor-not-allowed'
                 : predictionType === 'STOCK'
-                  ? 'bg-gradient-to-r from-[#003A70] to-[#0059b3] hover:shadow-blue-900/20 hover:-translate-y-0.5'
+                  ? 'bg-gradient-to-r from-[#558EFA] to-[#0059b3] hover:shadow-blue-900/20 hover:-translate-y-0.5'
                   : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:shadow-purple-900/20 hover:-translate-y-0.5'
                 }`}
             >

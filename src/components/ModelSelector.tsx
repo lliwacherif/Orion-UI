@@ -13,8 +13,6 @@ const ModelSelector: React.FC = () => {
 
   const models = [
     { id: 'chat' as ModelType, name: 'Orion' },
-    { id: 'ocr' as ModelType, name: 'OCR' },
-
     { id: 'orion-assist' as ModelType, name: 'Orion - Chrysus' },
   ];
 
@@ -48,7 +46,7 @@ const ModelSelector: React.FC = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 rounded-full transition bg-gradient-to-r from-[#003A70]/85 to-[#0059b3]/85 hover:from-[#003A70] hover:to-[#0059b3] backdrop-blur-lg border border-white/25 shadow-lg shadow-blue-900/30"
+        className="flex items-center gap-2 px-4 py-2 rounded-full transition bg-gradient-to-r from-[#558EFA]/85 to-[#0059b3]/85 hover:from-[#558EFA] hover:to-[#0059b3] backdrop-blur-lg border border-white/25 shadow-lg shadow-blue-900/30"
         style={{ color: 'white' }}
         aria-label="Select model"
       >
@@ -65,7 +63,7 @@ const ModelSelector: React.FC = () => {
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 mt-2 w-56 rounded-xl shadow-2xl z-50 overflow-hidden bg-[#003A70]/80 backdrop-blur-xl border border-white/15"
+          className="absolute top-full left-0 mt-2 w-56 rounded-xl shadow-2xl z-50 overflow-hidden bg-[#558EFA]/80 backdrop-blur-xl border border-white/15"
         >
           {/* Header */}
           <div className="px-4 py-3 border-b border-white/20 flex items-center justify-between">

@@ -36,7 +36,13 @@ const ChatWindow: React.FC = () => {
     addMessage
   } = useConversation();
   const { currentModel, isAgentMode, isProMode } = useModel();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    // Default to closed on mobile (< 768px), open on desktop
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768;
+    }
+    return true; // Default to open if window is undefined (e.g. server-side)
+  });
   const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
   const [showPulseModal, setShowPulseModal] = useState(false);
   const [showCanvas, setShowCanvas] = useState(false);
@@ -376,7 +382,7 @@ const ChatWindow: React.FC = () => {
                 <button
                   onClick={() => setIsSidebarOpen(true)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition"
-                  style={{ color: '#003A70' }}
+                  style={{ color: '#558EFA' }}
                   aria-label="Open sidebar"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

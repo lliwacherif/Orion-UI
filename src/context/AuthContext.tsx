@@ -7,10 +7,12 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   isAuthenticated: boolean;
+  pendingInvitation: boolean;
   register: (username: string, email: string, password: string, fullName?: string) => Promise<AuthResult>;
   login: (username: string, password: string) => Promise<AuthResult>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  completeInvitation: () => void;
 }
 
 interface AuthResult {
@@ -32,19 +34,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  const [pendingInvitation, setPendingInvitation] = useState(false);
+
+  // Load user and settings from localStorage on mount
   useEffect(() => {
     const savedToken = localStorage.getItem('aura_token');
     const savedUser = localStorage.getItem('aura_user');
-    
+    const isPending = localStorage.getItem('aura_pending_invitation') === 'true';
+
     if (savedToken && savedUser) {
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
+        setPendingInvitation(isPending);
       } catch (error) {
         console.error('Failed to parse saved user:', error);
         localStorage.removeItem('aura_token');
         localStorage.removeItem('aura_user');
+        localStorage.removeItem('aura_pending_invitation');
       }
     }
     setLoading(false);
@@ -75,12 +82,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const data: AuthResponse = await response.json();
-      
+
       // Save to state and localStorage
       setToken(data.access_token);
       setUser(data.user);
+
+      // NEW: Set pending invitation flag for new users
+      setPendingInvitation(true);
+
       localStorage.setItem('aura_token', data.access_token);
       localStorage.setItem('aura_user', JSON.stringify(data.user));
+      localStorage.setItem('aura_pending_invitation', 'true');
 
       console.log('✅ Registration successful:', data.user);
       return { success: true, user: data.user };
@@ -95,14 +107,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const payload = { username, password };
       console.log('🔐 Attempting login...');
-      console.log('📤 Username:', username);
-      console.log('📤 Password length:', password.length);
-      console.log('📤 Payload:', JSON.stringify(payload));
-      console.log('📤 Target URL:', `${API_BASE}/auth/login`);
+      // ... existing logs ...
 
       const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload)
@@ -114,8 +123,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         let errorMessage = 'Login failed';
         try {
           const error = await response.json();
-          console.error('❌ Login error response:', error);
-          console.error('❌ Login error detail:', JSON.stringify(error, null, 2));
           errorMessage = error.detail || error.message || 'Login failed';
         } catch (e) {
           console.error('Failed to parse error response');
@@ -124,12 +131,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const data: AuthResponse = await response.json();
-      
+
       // Save to state and localStorage
       setToken(data.access_token);
       setUser(data.user);
+      setPendingInvitation(false); // Login assumes existing user who has already passed check (or legacy user)
+
       localStorage.setItem('aura_token', data.access_token);
       localStorage.setItem('aura_user', JSON.stringify(data.user));
+      localStorage.removeItem('aura_pending_invitation');
 
       console.log('✅ Login successful:', data.user);
       return { success: true, user: data.user };
@@ -143,9 +153,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
+    setPendingInvitation(false);
     localStorage.removeItem('aura_token');
     localStorage.removeItem('aura_user');
+    localStorage.removeItem('aura_pending_invitation');
     console.log('👋 User logged out');
+  };
+
+  // Complete invitation
+  const completeInvitation = () => {
+    setPendingInvitation(false);
+    localStorage.removeItem('aura_pending_invitation');
+    console.log('✅ Invitation code verified');
   };
 
   // Refresh user data
@@ -176,10 +195,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     token,
     loading,
     isAuthenticated: !!token && !!user,
+    pendingInvitation,
     register,
     login,
     logout,
-    refreshUser
+    refreshUser,
+    completeInvitation
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -227,14 +227,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
           {/* Header - Fixed */}
-          <div className="bg-gradient-to-r from-blue-600/80 via-blue-500/80 to-emerald-400/80 backdrop-blur-md text-white px-6 py-4 flex-shrink-0">
+          <div className="bg-white px-6 py-4 flex-shrink-0 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-xl font-bold" style={{ color: '#558EFA' }}>
                 {language === 'en' ? 'User Profile' : 'Profil Utilisateur'}
               </h2>
               <button
                 onClick={onClose}
-                className="p-1 hover:bg-white/20 rounded-lg transition"
+                className="p-1 hover:bg-gray-100 rounded-lg transition text-gray-500"
                 aria-label="Close"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,11 +246,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
 
           {/* Content - Scrollable */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-            {/* User Avatar */}
-            <div className="flex justify-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-emerald-400 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                {user.full_name ? user.full_name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
-              </div>
+            {/* User Name Display (Replaces Avatar) */}
+            <div className="flex justify-center text-center">
+              <h1 className="text-3xl font-bold text-gray-800">
+                {user.full_name || user.username}
+              </h1>
             </div>
 
             {/* Memory Capsule Button with Quick Access */}

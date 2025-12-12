@@ -76,7 +76,7 @@ const EmptyState: React.FC<EmptyStateProps> = () => {
         {/* Dynamic Welcome Text - changes with each new chat */}
         <h1
           className={`font-bold text-3xl`}
-          style={{ color: '#003A70' }}
+          style={{ color: '#558EFA' }}
         >
           {greeting}
         </h1>

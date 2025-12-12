@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useSession } from '../context/SessionContext';
 import { useLanguage } from '../context/LanguageContext';
 import { translations } from '../translations';
-import { FcGoogle } from 'react-icons/fc';
-import { FaMicrosoft } from 'react-icons/fa';
 
 const Login: React.FC = () => {
   const [userId, setUserId] = useState('');
@@ -55,7 +53,7 @@ const Login: React.FC = () => {
 
           {/* Card Content */}
           <div className="relative z-10 p-6 sm:p-8 md:p-10">
-            <h2 className="mb-6 sm:mb-8 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#003A70' }}>
+            <h2 className="mb-6 sm:mb-8 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#558EFA' }}>
               Welcome
             </h2>
 
@@ -110,47 +108,12 @@ const Login: React.FC = () => {
                 </a>
               </p>
             </form>
-
-            {/* "OR" Separator */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-3 text-gray-400">OR</span>
-              </div>
-            </div>
-
-            {/* Social Logins */}
-            <div className="space-y-3">
-              {/* Google Button */}
-              <button
-                type="button"
-                className="flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
-              >
-                <span className="mr-3">
-                  <FcGoogle size={20} />
-                </span>
-                Continue with Google
-              </button>
-
-              {/* Microsoft Button */}
-              <button
-                type="button"
-                className="flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
-              >
-                <span className="mr-3">
-                  <FaMicrosoft size={20} color="#0078D4" />
-                </span>
-                Continue with Microsoft Account
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Footer Text */}
-      <div className="absolute bottom-4 sm:bottom-8 text-xs font-medium tracking-wider" style={{ color: '#003A70' }}>
+      <div className="absolute bottom-4 sm:bottom-8 text-xs font-medium tracking-wider" style={{ color: '#558EFA' }}>
         POWERED BY CherifCorp Technologies
       </div>
     </div>

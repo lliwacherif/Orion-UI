@@ -328,7 +328,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
         className={`fixed left-0 top-0 h-full text-white transition-all duration-300 ease-in-out z-20 flex flex-col ${isOpen ? 'w-64' : 'w-0'
           } overflow-hidden`}
         style={{
-          background: 'linear-gradient(to bottom, #003a70 0%, #00294d 50%, #001f3d 100%)'
+          background: 'linear-gradient(to bottom, #558EFA 0%, #00294d 50%, #001f3d 100%)'
         }}
       >
         {/* Top Header with Logo and Menu */}

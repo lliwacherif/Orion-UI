@@ -6,6 +6,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ConversationProvider } from './context/ConversationContext';
 import { ModelProvider } from './context/ModelContext';
 import Auth from './components/Auth';
+import InvitationCode from './components/InvitationCode';
 import ChatWindow from './components/ChatWindow';
 import { AgentTaskService } from './services/agentTaskService';
 import { chat, webSearch } from './api/orcha';
@@ -23,17 +24,17 @@ const queryClient = new QueryClient({
 });
 
 const AppContent: React.FC = () => {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading, pendingInvitation } = useAuth();
   const { session, login } = useSession();
   const [agentNotification, setAgentNotification] = useState<AgentNotificationData | null>(null);
 
   // Sync authenticated user with session
   useEffect(() => {
-    if (user && !session) {
-      // Create session from authenticated user
+    if (user && !session && !pendingInvitation) {
+      // Create session from authenticated user ONLY if invitation is not pending
       login(user.id.toString(), undefined);
     }
-  }, [user, session, login]);
+  }, [user, session, login, pendingInvitation]);
 
   // Agent Task Scheduler
   useEffect(() => {
@@ -44,7 +45,7 @@ const AppContent: React.FC = () => {
     // Execute agent task
     const executeAgentTask = async (task: any) => {
       console.log('🚀 Executing agent task:', task.taskName, task.isSearch ? '(Web Search)' : '(Chat)');
-      
+
       try {
         let response;
 
@@ -93,7 +94,7 @@ const AppContent: React.FC = () => {
     // Check for scheduled tasks
     const checkTasks = () => {
       const tasksToRun = AgentTaskService.checkScheduledTasks();
-      
+
       if (tasksToRun.length > 0) {
         console.log(`🔔 ${tasksToRun.length} agent task(s) ready to execute`);
         tasksToRun.forEach(task => {
@@ -127,10 +128,18 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-      {isAuthenticated && session ? <ChatWindow /> : <Auth />}
-      <AgentNotification 
-        notification={agentNotification} 
-        onClose={() => setAgentNotification(null)} 
+      {isAuthenticated ? (
+        pendingInvitation ? (
+          <InvitationCode />
+        ) : (
+          session ? <ChatWindow /> : <div>Loading...</div>
+        )
+      ) : (
+        <Auth />
+      )}
+      <AgentNotification
+        notification={agentNotification}
+        onClose={() => setAgentNotification(null)}
       />
     </>
   );

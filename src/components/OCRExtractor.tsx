@@ -14,7 +14,7 @@ const OCRExtractor: React.FC = () => {
   const { session } = useSession();
   const { language } = useLanguage();
   const t = translations[language].ocr;
-  
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [extractedText, setExtractedText] = useState<string>('');
@@ -89,12 +89,12 @@ const OCRExtractor: React.FC = () => {
         console.log('Data status:', data.status);
         console.log('Extracted text length:', data.extracted_text?.length || 0);
         console.log('Lines count:', data.lines_count);
-        
+
         if (data.status === 'success' && data.extracted_text) {
           setExtractedText(data.extracted_text);
           setLinesCount(data.lines_count || 0);
           console.log('✅ OCR extraction successful - text set');
-          
+
           // If document type is passport or ID card, trigger LLM cleaning
           if (documentType === 'passport' || documentType === 'id_card') {
             handleCleanWithAI(data.extracted_text, documentType);
@@ -151,7 +151,7 @@ const OCRExtractor: React.FC = () => {
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    
+
     if (!file) return;
 
     // Validate file type
@@ -272,7 +272,7 @@ const OCRExtractor: React.FC = () => {
   const handleRestyle = (style: 'professional' | 'friendly') => {
     if (!extractedText || !user || !session) return;
 
-    const stylePrompt = style === 'professional' 
+    const stylePrompt = style === 'professional'
       ? `Restyle this text with professional style:\n\n${extractedText}`
       : `Restyle this text with friendly style:\n\n${extractedText}`;
 
@@ -323,7 +323,7 @@ const OCRExtractor: React.FC = () => {
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-bold" style={{ color: '#003A70' }}>{t.title}</h1>
+        <h1 className="text-xl font-bold" style={{ color: '#558EFA' }}>{t.title}</h1>
       </div>
 
       {/* Main Content */}
@@ -332,14 +332,14 @@ const OCRExtractor: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Language Selection */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <label className="block text-sm font-medium mb-2" style={{ color: '#003A70' }}>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#558EFA' }}>
               {t.languageDetection}
             </label>
-            <select 
-              value={selectedLanguage} 
+            <select
+              value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
               disabled={ocrMutation.isLoading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-[#003A70]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-[#558EFA]"
             >
               {languages.map(lang => (
                 <option key={lang.code} value={lang.code}>
@@ -351,18 +351,18 @@ const OCRExtractor: React.FC = () => {
 
           {/* Document Type Selection */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
-            <label className="block text-sm font-medium mb-2" style={{ color: '#003A70' }}>
+            <label className="block text-sm font-medium mb-2" style={{ color: '#558EFA' }}>
               {t.documentType}
             </label>
-            <select 
-              value={documentType} 
+            <select
+              value={documentType}
               onChange={(e) => setDocumentType(e.target.value)}
               disabled={ocrMutation.isLoading}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-[#003A70]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-[#558EFA]"
             >
-              <option value="other" className="text-[#003A70]">{t.docTypeOther}</option>
-              <option value="passport" className="text-[#003A70]">{t.docTypePassport}</option>
-              <option value="id_card" className="text-[#003A70]">{t.docTypeIdCard}</option>
+              <option value="other" className="text-[#558EFA]">{t.docTypeOther}</option>
+              <option value="passport" className="text-[#558EFA]">{t.docTypePassport}</option>
+              <option value="id_card" className="text-[#558EFA]">{t.docTypeIdCard}</option>
             </select>
           </div>
         </div>
@@ -378,12 +378,12 @@ const OCRExtractor: React.FC = () => {
               id="file-input"
               className="hidden"
             />
-            <label 
-              htmlFor="file-input" 
-              className="w-full max-w-md flex flex-col items-center gap-4 px-8 py-8 border-2 border-dashed border-[#003A70] text-[#003A70] rounded-2xl cursor-pointer hover:bg-[#f0f6fb] transition-all duration-200 font-medium shadow-md bg-white"
+            <label
+              htmlFor="file-input"
+              className="w-full max-w-md flex flex-col items-center gap-4 px-8 py-8 border-2 border-dashed border-[#558EFA] text-[#558EFA] rounded-2xl cursor-pointer hover:bg-[#f0f6fb] transition-all duration-200 font-medium shadow-md bg-white"
             >
-              <img 
-                src="/assets/upload-button.png" 
+              <img
+                src="/assets/upload-button.png"
                 alt={t.chooseImage}
                 className="w-40 h-40 object-contain"
               />
@@ -404,10 +404,10 @@ const OCRExtractor: React.FC = () => {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">{t.imagePreview}</h3>
             <div className="text-center">
-              <img 
-                src={imagePreview} 
-                alt="Preview" 
-                className="max-w-full max-h-80 mx-auto rounded-lg shadow-sm border border-gray-200" 
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="max-w-full max-h-80 mx-auto rounded-lg shadow-sm border border-gray-200"
               />
             </div>
           </div>
@@ -446,10 +446,10 @@ const OCRExtractor: React.FC = () => {
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-green-400/25 to-emerald-400/25 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
-          
+
           {(extractedText || selectedFile) && (
-            <button 
-              onClick={handleClear} 
+            <button
+              onClick={handleClear}
               className="group relative px-6 py-3 bg-gradient-to-r from-red-600/25 to-red-500/25 rounded-full font-semibold transition-all duration-300 flex items-center gap-2 backdrop-blur-md border border-white/30 shadow-lg hover:shadow-xl"
             >
               <div className="relative flex items-center gap-2 z-10">
@@ -475,9 +475,9 @@ const OCRExtractor: React.FC = () => {
               <span className="text-red-800 font-medium">{t.error}:</span>
             </div>
             <p className="text-red-700 mt-1">
-              {ocrMutation.error?.response?.data?.error || 
-               ocrMutation.error?.response?.data?.detail || 
-               t.errorMessage}
+              {ocrMutation.error?.response?.data?.error ||
+                ocrMutation.error?.response?.data?.detail ||
+                t.errorMessage}
             </p>
           </div>
         )}
@@ -486,7 +486,7 @@ const OCRExtractor: React.FC = () => {
         {extractedText && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4" style={{ backgroundColor: '#003A70' }}>
+            <div className="px-6 py-4" style={{ backgroundColor: '#558EFA' }}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -496,9 +496,8 @@ const OCRExtractor: React.FC = () => {
                 </div>
                 <button
                   onClick={handleCopyText}
-                  className={`p-2.5 rounded-full transition-colors duration-200 ${
-                    copied ? 'bg-white text-[#003A70]' : 'bg-white/90 text-[#003A70] hover:bg-white'
-                  }`}
+                  className={`p-2.5 rounded-full transition-colors duration-200 ${copied ? 'bg-white text-[#558EFA]' : 'bg-white/90 text-[#558EFA] hover:bg-white'
+                    }`}
                   aria-label={copied ? t.copied : t.copy}
                   title={copied ? t.copied : t.copy}
                 >
@@ -514,7 +513,7 @@ const OCRExtractor: React.FC = () => {
                 </button>
               </div>
             </div>
-            
+
             {/* Metadata */}
             <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
               <div className="flex gap-6 text-sm text-gray-600">
@@ -692,22 +691,20 @@ const OCRExtractor: React.FC = () => {
       {/* AI Response Modal */}
       {showAiModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-50 overflow-y-auto">
-          <div className={`bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border-4 border-transparent p-1 my-8 ${
-            aiModalTitle === 'summary' 
-              ? 'bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500' 
+          <div className={`bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border-4 border-transparent p-1 my-8 ${aiModalTitle === 'summary'
+              ? 'bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500'
               : aiModalTitle === 'restyle'
-              ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500'
-              : 'bg-gradient-to-r from-orange-400 via-red-500 to-pink-500'
-          }`}>
+                ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500'
+                : 'bg-gradient-to-r from-orange-400 via-red-500 to-pink-500'
+            }`}>
             <div className="bg-white rounded-xl flex flex-col overflow-hidden">
               {/* Header */}
-              <div className={`px-6 py-4 flex-shrink-0 ${
-                aiModalTitle === 'summary' 
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600' 
+              <div className={`px-6 py-4 flex-shrink-0 ${aiModalTitle === 'summary'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600'
                   : aiModalTitle === 'restyle'
-                  ? 'bg-gradient-to-r from-yellow-600 to-orange-600'
-                  : 'bg-gradient-to-r from-orange-600 to-red-600'
-              }`}>
+                    ? 'bg-gradient-to-r from-yellow-600 to-orange-600'
+                    : 'bg-gradient-to-r from-orange-600 to-red-600'
+                }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -726,11 +723,11 @@ const OCRExtractor: React.FC = () => {
                       )}
                     </div>
                     <h3 className="text-lg font-semibold text-white">
-                      {aiModalTitle === 'summary' 
+                      {aiModalTitle === 'summary'
                         ? (language === 'en' ? 'AI Summary' : 'Résumé IA')
                         : aiModalTitle === 'restyle'
-                        ? (language === 'en' ? 'AI Restyled' : 'Restylé IA')
-                        : (language === 'en' ? 'AI Translated' : 'Traduit IA')
+                          ? (language === 'en' ? 'AI Restyled' : 'Restylé IA')
+                          : (language === 'en' ? 'AI Translated' : 'Traduit IA')
                       }
                     </h3>
                   </div>
@@ -747,13 +744,12 @@ const OCRExtractor: React.FC = () => {
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-6 min-h-0">
-                <div className={`rounded-lg p-4 border-l-4 ${
-                  aiModalTitle === 'summary' 
-                    ? 'bg-emerald-50 border-emerald-500' 
+                <div className={`rounded-lg p-4 border-l-4 ${aiModalTitle === 'summary'
+                    ? 'bg-emerald-50 border-emerald-500'
                     : aiModalTitle === 'restyle'
-                    ? 'bg-yellow-50 border-yellow-500'
-                    : 'bg-orange-50 border-orange-500'
-                }`}>
+                      ? 'bg-yellow-50 border-yellow-500'
+                      : 'bg-orange-50 border-orange-500'
+                  }`}>
                   <div className="text-gray-800 font-sans leading-relaxed text-sm prose prose-sm max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiResponse}</ReactMarkdown>
                   </div>
@@ -761,21 +757,19 @@ const OCRExtractor: React.FC = () => {
               </div>
 
               {/* Footer */}
-              <div className={`px-6 py-4 border-t border-gray-200 flex-shrink-0 ${
-                aiModalTitle === 'summary' ? 'bg-emerald-50' : aiModalTitle === 'restyle' ? 'bg-yellow-50' : 'bg-orange-50'
-              }`}>
+              <div className={`px-6 py-4 border-t border-gray-200 flex-shrink-0 ${aiModalTitle === 'summary' ? 'bg-emerald-50' : aiModalTitle === 'restyle' ? 'bg-yellow-50' : 'bg-orange-50'
+                }`}>
                 <div className="flex gap-3 justify-end">
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(aiResponse);
                     }}
-                    className={`px-4 py-2 rounded-lg hover:opacity-80 transition-colors duration-200 flex items-center gap-2 ${
-                      aiModalTitle === 'summary' 
-                        ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                    className={`px-4 py-2 rounded-lg hover:opacity-80 transition-colors duration-200 flex items-center gap-2 ${aiModalTitle === 'summary'
+                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                         : aiModalTitle === 'restyle'
-                        ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                        : 'bg-orange-600 text-white hover:bg-orange-700'
-                    }`}
+                          ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                          : 'bg-orange-600 text-white hover:bg-orange-700'
+                      }`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -784,13 +778,12 @@ const OCRExtractor: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setShowAiModal(false)}
-                    className={`px-4 py-2 rounded-lg transition-all duration-200 ${
-                      aiModalTitle === 'summary' 
-                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700' 
+                    className={`px-4 py-2 rounded-lg transition-all duration-200 ${aiModalTitle === 'summary'
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700'
                         : aiModalTitle === 'restyle'
-                        ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white hover:from-yellow-700 hover:to-orange-700'
-                        : 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700'
-                    }`}
+                          ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white hover:from-yellow-700 hover:to-orange-700'
+                          : 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700'
+                      }`}
                   >
                     {language === 'en' ? 'Close' : 'Fermer'}
                   </button>

@@ -105,7 +105,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
           {/* Card Content */}
           <div className="relative z-10 p-6 sm:p-8 md:p-10">
-            <h2 className="mb-6 sm:mb-8 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#003A70' }}>
+            <h2 className="mb-6 sm:mb-8 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#558EFA' }}>
               {language === 'en' ? 'Create Account' : 'Créer un compte'}
             </h2>
 
@@ -242,7 +242,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       </div>
 
       {/* Footer Text */}
-      <div className="absolute bottom-4 sm:bottom-8 text-xs font-medium tracking-wider" style={{ color: '#003A70' }}>
+      <div className="absolute bottom-4 sm:bottom-8 text-xs font-medium tracking-wider" style={{ color: '#558EFA' }}>
         POWERED BY CherifCorp Technologies
       </div>
     </div>
