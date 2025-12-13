@@ -440,26 +440,40 @@ const ChatWindow: React.FC = () => {
           <OrionAssistChat />
         ) : isAgentMode ? (
           /* Agent Mode Layout */
-          <div className="flex-1 overflow-hidden relative p-6 bg-gradient-to-br from-gray-50 to-blue-50/30">
+          <div className="flex-1 overflow-y-auto relative p-6 bg-[#f8fafc]">
+            {/* Background Decorations */}
+            <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50/80 to-transparent pointer-events-none" />
+            <div className="absolute -top-24 -right-24 w-96 h-96 bg-purple-100/50 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
+
             {/* Agent Mode Header */}
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
-              <div className="px-6 py-2 bg-white/30 backdrop-blur-xl border border-white/40 rounded-full shadow-lg flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
-                <span className="font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  Agent Mode
-                </span>
+            <div className="relative z-10 mb-8 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                  </div>
+                  {language === 'en' ? 'Agent Workspace' : 'Espace Agent'}
+                </h1>
+                <p className="mt-1 text-gray-500 text-sm ml-14">
+                  {language === 'en'
+                    ? 'Coordinate tasks and plan complex workflows with your AI agent.'
+                    : 'Coordonnez les tâches et planifiez des flux de travail complexes avec votre agent IA.'}
+                </p>
               </div>
             </div>
 
-            {/* 50/50 Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full pt-12">
-              {/* Left Column: Plan With Agent */}
-              <div className="h-full overflow-hidden">
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[calc(100vh-12rem)] pb-6">
+              {/* Left Column: Plan With Agent (Now wider) */}
+              <div className="lg:col-span-7 h-[600px] lg:h-full">
                 <PlanWithAgent />
               </div>
 
               {/* Right Column: Schedule a Task */}
-              <div className="h-full overflow-hidden">
+              <div className="lg:col-span-5 h-[500px] lg:h-full">
                 <AgentTaskScheduler />
               </div>
             </div>

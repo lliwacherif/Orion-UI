@@ -50,8 +50,8 @@ const AgentScheduleModal: React.FC<AgentScheduleModalProps> = ({
       } else if (initialInstructions && !instructions) {
         // New task from instructions
         setInstructions(initialInstructions);
-        const autoName = initialInstructions.length > 50 
-          ? initialInstructions.substring(0, 47) + '...' 
+        const autoName = initialInstructions.length > 50
+          ? initialInstructions.substring(0, 47) + '...'
           : initialInstructions;
         setTaskName(autoName);
       }
@@ -77,7 +77,7 @@ const AgentScheduleModal: React.FC<AgentScheduleModalProps> = ({
     };
 
     onSave(task);
-    
+
     // Reset form
     setTaskName('');
     setInstructions('');
@@ -88,44 +88,48 @@ const AgentScheduleModal: React.FC<AgentScheduleModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn"
       onClick={onClose}
     >
-      <div 
-        className="bg-white rounded-xl w-full max-w-2xl overflow-hidden flex flex-col shadow-2xl"
+      <div
+        className="bg-white rounded-3xl w-full max-w-xl overflow-hidden flex flex-col shadow-2xl transform transition-all animate-slideUp border border-white/20"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600 text-white px-6 py-5">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                <Calendar className="w-6 h-6" />
+        <div className="bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white px-8 py-6 relative overflow-hidden">
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+          <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+
+          <div className="flex justify-between items-start relative z-10">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg">
+                <Calendar className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-bold">
-                    {language === 'en' ? 'Scheduled action' : 'Action planifiée'}
-                  </h2>
+                <h2 className="text-2xl font-bold tracking-tight">
+                  {language === 'en' ? 'Schedule Task' : 'Planifier une Tâche'}
+                </h2>
+                <div className="flex items-center gap-2 mt-1">
                   {isSearchMode && (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-sky-400 text-white rounded-full text-xs font-medium">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-sky-400/30 border border-sky-300/30 text-white rounded-full text-xs font-medium backdrop-blur-sm">
                       <Globe className="w-3 h-3" />
                       {language === 'en' ? 'Web Search' : 'Recherche Web'}
                     </span>
                   )}
+                  <p className="text-indigo-100 text-sm font-medium">
+                    {isSearchMode
+                      ? (language === 'en' ? 'Automated search agent' : 'Agent de recherche automatisé')
+                      : (language === 'en' ? 'Automated workflow agent' : 'Agent de flux de travail automatisé')
+                    }
+                  </p>
                 </div>
-                <p className="text-purple-100 text-sm">
-                  {isSearchMode 
-                    ? (language === 'en' ? 'Schedule automated web searches' : 'Planifier des recherches Web automatisées')
-                    : (language === 'en' ? 'Automate your workflow' : 'Automatisez votre flux de travail')
-                  }
-                </p>
               </div>
             </div>
-            <button 
+            <button
               onClick={onClose}
-              className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition"
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition text-white/80 hover:text-white"
               title={language === 'en' ? 'Close' : 'Fermer'}
             >
               <X className="w-5 h-5" />
@@ -152,7 +156,7 @@ const AgentScheduleModal: React.FC<AgentScheduleModalProps> = ({
           {/* Instructions */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {isSearchMode 
+              {isSearchMode
                 ? (language === 'en' ? 'Search Query' : 'Requête de recherche')
                 : (language === 'en' ? 'Instructions' : 'Instructions')
               }
@@ -199,7 +203,7 @@ const AgentScheduleModal: React.FC<AgentScheduleModalProps> = ({
               />
             </div>
             <p className="mt-2 text-xs text-gray-500">
-              {language === 'en' 
+              {language === 'en'
                 ? 'Your prompt will run within an hour of the selected time'
                 : 'Votre prompt s\'exécutera dans l\'heure suivant l\'heure sélectionnée'
               }
