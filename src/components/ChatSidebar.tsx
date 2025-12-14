@@ -202,7 +202,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
   });
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
-  const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
 
   // Persist folders
   useEffect(() => {

@@ -17,7 +17,7 @@ interface ConversationContextType {
   messages: ChatMessage[];
   loading: boolean;
   error: string | null;
-  createNewConversation: () => Promise<void>;
+  createNewConversation: () => Promise<number | null>;
   switchConversation: (id: number) => Promise<void>;
   deleteConversation: (id: number) => Promise<void>;
   updateConversationTitle: (id: number, title: string) => Promise<void>;
@@ -133,7 +133,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
   }, [user, currentConversationId, authLoading, loadConversationMessages]);
 
   const createNewConversation = useCallback(async () => {
-    if (!user) return;
+    if (!user) return null;
 
     setLoading(true);
     setError(null);
@@ -148,9 +148,11 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
       setConversations(prev => [newConversation, ...prev]);
       setCurrentConversationId(newConversation.id);
       setMessages([]);
+      return newConversation.id;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create conversation');
       console.error('Failed to create conversation:', err);
+      return null;
     } finally {
       setLoading(false);
     }
