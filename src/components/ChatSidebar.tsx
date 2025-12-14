@@ -4,11 +4,11 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useModel } from '../context/ModelContext';
 import { translations } from '../translations';
-import type { TokenUsage } from '../types/orcha';
+import type { TokenUsage, Folder } from '../types/orcha';
 import UserProfile from './UserProfile';
 import { getTokenUsage } from '../api/orcha';
 import { AgentTaskService } from '../services/agentTaskService';
-import { Clock, Globe, MessageSquare, Menu, Search } from 'lucide-react';
+import { Clock, Globe, MessageSquare, Menu, Search, FolderPlus, Folder as FolderIcon, ChevronRight, ChevronDown, Plus } from 'lucide-react';
 
 interface ChatSidebarProps {
   isOpen: boolean;
@@ -195,7 +195,65 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
   const [currentTokenUsage, setCurrentTokenUsage] = useState<TokenUsage | null>(tokenUsage || null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // Update local token usage when prop changes (from chat responses)
+  // Folders State
+  const [folders, setFolders] = useState<Folder[]>(() => {
+    const saved = localStorage.getItem('orion_folders');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
+
+  // Persist folders
+  useEffect(() => {
+    localStorage.setItem('orion_folders', JSON.stringify(folders));
+  }, [folders]);
+
+  // Handle Folder Creation
+  const handleCreateFolder = () => {
+    if (!newFolderName.trim()) {
+      setIsCreatingFolder(false);
+      return;
+    }
+
+    const newFolder: Folder = {
+      id: Date.now(),
+      name: newFolderName,
+      conversation_ids: [],
+      is_expanded: true,
+      created_at: new Date().toISOString()
+    };
+
+    setFolders(prev => [newFolder, ...prev]);
+    setNewFolderName('');
+    setIsCreatingFolder(false);
+  };
+
+  // Toggle Folder Expansion
+  const toggleFolder = (folderId: number) => {
+    setFolders(prev => prev.map(f =>
+      f.id === folderId ? { ...f, is_expanded: !f.is_expanded } : f
+    ));
+  };
+
+  // Create New Chat INSIDE a Folder
+  const handleNewChatInFolder = async (folderId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Create the conversation
+    const newConvId = await createNewConversation();
+    if (newConvId) {
+      // Add to folder
+      setFolders(prev => prev.map(f =>
+        f.id === folderId ? { ...f, conversation_ids: [newConvId, ...f.conversation_ids], is_expanded: true } : f
+      ));
+    }
+    setModel('chat');
+  };
+
+  // Assign existing chat to folder (Optional: Drop logic placeholder)
+  // For now we assume chats start in generic list unless created in folder
+
+  // Filter conversations based on search query
   useEffect(() => {
     if (tokenUsage) {
       setCurrentTokenUsage(tokenUsage);
@@ -311,8 +369,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
     conv.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Get IDs of conversations that are in folders to exclude them from main list
+  const folderConversationIds = new Set(folders.flatMap(f => f.conversation_ids));
+
+  // Filter out folder conversations from the main list
+  const mainConversations = filteredConversations.filter(c => !folderConversationIds.has(c.id));
+
   // Group conversations by date
-  const groupedConversations = filteredConversations.reduce((groups, conv) => {
+  const groupedConversations = mainConversations.reduce((groups, conv) => {
     const key = formatDate(conv.updated_at);
     if (!groups[key]) {
       groups[key] = [];
@@ -415,8 +479,103 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
           </div>
         </div>
 
+        {/* Folders Section */}
+        <div className="px-3 pt-2">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-white/70">
+              <FolderIcon className="w-4 h-4" />
+              <span className="text-xs font-semibold uppercase tracking-wider">{language === 'en' ? 'Folders' : 'Dossiers'}</span>
+            </div>
+            <button
+              onClick={() => setIsCreatingFolder(true)}
+              className="p-1 hover:bg-white/10 rounded text-white/70 hover:text-white transition"
+              title={language === 'en' ? 'New Folder' : 'Nouveau dossier'}
+            >
+              <FolderPlus className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* New Folder Input */}
+          {isCreatingFolder && (
+            <div className="mb-2 px-2">
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
+                onBlur={handleCreateFolder}
+                placeholder={language === 'en' ? 'Folder name...' : 'Nom du dossier...'}
+                autoFocus
+                className="w-full bg-white/10 text-white text-sm rounded px-2 py-1 outline-none border border-white/20 focus:border-emerald-400"
+              />
+            </div>
+          )}
+
+          {/* Folders List */}
+          <div className="space-y-1 mb-4">
+            {folders.map(folder => (
+              <div key={folder.id} className="rounded-lg overflow-hidden border border-white/5 bg-white/5">
+                {/* Folder Header */}
+                <div
+                  className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-white/10 transition group"
+                  onClick={() => toggleFolder(folder.id)}
+                >
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    {folder.is_expanded ? <ChevronDown className="w-3 h-3 text-white/60" /> : <ChevronRight className="w-3 h-3 text-white/60" />}
+                    <span className="text-sm font-medium text-white/90 truncate">{folder.name}</span>
+                    <span className="text-xs text-white/40">({folder.conversation_ids.length})</span>
+                  </div>
+
+                  {/* New Chat in Folder Button */}
+                  <button
+                    onClick={(e) => handleNewChatInFolder(folder.id, e)}
+                    className="p-1 opacity-0 group-hover:opacity-100 hover:bg-emerald-500/20 hover:text-emerald-400 rounded transition"
+                    title={language === 'en' ? 'New Chat in Folder' : 'Nouveau chat dans le dossier'}
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+
+                {/* Folder Content (Chats) */}
+                {folder.is_expanded && (
+                  <div className="bg-black/20 border-t border-white/5">
+                    {folder.conversation_ids.length === 0 ? (
+                      <div className="px-4 py-2 text-xs text-white/30 italic">
+                        {language === 'en' ? 'Empty folder' : 'Dossier vide'}
+                      </div>
+                    ) : (
+                      conversations
+                        .filter(c => folder.conversation_ids.includes(c.id))
+                        .map(conv => (
+                          <div
+                            key={conv.id}
+                            onClick={() => switchConversation(conv.id)}
+                            className={`group flex items-center gap-2 px-8 py-2 cursor-pointer transition text-sm ${conv.id === currentConversationId
+                              ? 'bg-white/10 text-white border-l-2 border-emerald-400'
+                              : 'text-white/70 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
+                              }`}
+                          >
+                            <span className="truncate flex-1">{conv.title || 'Untitled'}</span>
+                            <button
+                              onClick={(e) => handleDelete(conv.id, e)} // Deleting chat removes it from folder too naturally as it deletes the conv
+                              className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-red-400 transition"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Chats Section Header */}
-        <div className="px-3 pt-4 pb-2 flex items-center gap-2">
+        <div className="px-3 pt-2 pb-2 flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-emerald-400" />
           <span className="text-white font-medium text-sm">{language === 'en' ? 'Chats' : 'Discussions'}</span>
         </div>
@@ -517,10 +676,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
             {language === 'en' ? 'AI-Powered Chat by CherifCorp Technologies' : 'Chat IA par CherifCorp Technologies'}
           </p>
         </div>
-      </div>
+      </div >
 
       {/* User Profile Modal */}
-      <UserProfile
+      < UserProfile
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         tokenUsage={currentTokenUsage}

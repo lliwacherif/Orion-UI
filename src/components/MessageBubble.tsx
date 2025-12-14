@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { ChatMessage } from '../types/orcha';
+import type { ChatMessage, Attachment } from '../types/orcha';
 import { useLanguage } from '../context/LanguageContext';
 
 interface MessageBubbleProps {
@@ -229,6 +229,39 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRegenerate }) 
               : 'bg-gray-100 text-gray-900 rounded-bl-md'
             }`}
         >
+          {/* Image Attachments */}
+          {(() => {
+            let attachments: Attachment[] = [];
+            try {
+              if (Array.isArray(message.attachments)) {
+                attachments = message.attachments;
+              } else if (typeof message.attachments === 'string') {
+                attachments = JSON.parse(message.attachments);
+              }
+            } catch (e) {
+              console.error('Failed to parse attachments:', e);
+            }
+
+            const images = attachments?.filter((att: Attachment) => att.type.startsWith('image/')) || [];
+
+            if (images.length > 0) {
+              return (
+                <div className={`mb-3 grid gap-2 ${images.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                  {images.map((img, idx) => (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={img.uri || (img.data ? `data:${img.type};base64,${img.data}` : '')}
+                        alt={img.filename || 'Attached image'}
+                        className="rounded-lg max-w-full max-h-[300px] object-cover border border-white/10 shadow-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           {isAssistant ? (
             <div className="prose prose-sm max-w-none overflow-hidden">
               <ReactMarkdown

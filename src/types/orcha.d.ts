@@ -212,6 +212,14 @@ export interface PulseResponse {
   message?: string;
 }
 
+export interface Folder {
+  id: number;
+  name: string;
+  conversation_ids: number[];
+  is_expanded?: boolean;
+  created_at?: string;
+}
+
 // Web Search feature types
 export interface WebSearchRequest {
   user_id: string;
