@@ -1,6 +1,6 @@
 // @refresh reset
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import type { User, AuthResponse } from '../types/orcha';
+import type { User, AuthResponse, JobTitle } from '../types/orcha';
 
 interface AuthContextType {
   user: User | null;
@@ -8,11 +8,13 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   pendingInvitation: boolean;
+  pendingJobTitle: boolean;
   register: (username: string, email: string, password: string, fullName?: string) => Promise<AuthResult>;
   login: (username: string, password: string) => Promise<AuthResult>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   completeInvitation: () => void;
+  updateJobTitle: (jobTitle: JobTitle) => Promise<AuthResult>;
 }
 
 interface AuthResult {
@@ -35,23 +37,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const [pendingInvitation, setPendingInvitation] = useState(false);
+  const [pendingJobTitle, setPendingJobTitle] = useState(false);
 
   // Load user and settings from localStorage on mount
   useEffect(() => {
     const savedToken = localStorage.getItem('aura_token');
     const savedUser = localStorage.getItem('aura_user');
-    const isPending = localStorage.getItem('aura_pending_invitation') === 'true';
+    const isPendingInvitation = localStorage.getItem('aura_pending_invitation') === 'true';
+    const isPendingJobTitle = localStorage.getItem('aura_pending_job_title') === 'true';
 
     if (savedToken && savedUser) {
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
-        setPendingInvitation(isPending);
+        setPendingInvitation(isPendingInvitation);
+        setPendingJobTitle(isPendingJobTitle);
       } catch (error) {
         console.error('Failed to parse saved user:', error);
         localStorage.removeItem('aura_token');
         localStorage.removeItem('aura_user');
         localStorage.removeItem('aura_pending_invitation');
+        localStorage.removeItem('aura_pending_job_title');
       }
     }
     setLoading(false);
@@ -136,10 +142,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(data.access_token);
       setUser(data.user);
       setPendingInvitation(false); // Login assumes existing user who has already passed check (or legacy user)
+      setPendingJobTitle(false); // Existing users already have job title set
 
       localStorage.setItem('aura_token', data.access_token);
       localStorage.setItem('aura_user', JSON.stringify(data.user));
       localStorage.removeItem('aura_pending_invitation');
+      localStorage.removeItem('aura_pending_job_title');
 
       console.log('✅ Login successful:', data.user);
       return { success: true, user: data.user };
@@ -154,17 +162,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setToken(null);
     setUser(null);
     setPendingInvitation(false);
+    setPendingJobTitle(false);
     localStorage.removeItem('aura_token');
     localStorage.removeItem('aura_user');
     localStorage.removeItem('aura_pending_invitation');
+    localStorage.removeItem('aura_pending_job_title');
     console.log('👋 User logged out');
   };
 
-  // Complete invitation
+  // Complete invitation - now moves to job title selection
   const completeInvitation = () => {
     setPendingInvitation(false);
+    setPendingJobTitle(true);
     localStorage.removeItem('aura_pending_invitation');
-    console.log('✅ Invitation code verified');
+    localStorage.setItem('aura_pending_job_title', 'true');
+    console.log('✅ Invitation code verified - now select job title');
+  };
+
+  // Update user's job title
+  const updateJobTitle = async (jobTitle: JobTitle): Promise<AuthResult> => {
+    if (!token || !user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/update-job-title`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ job_title: jobTitle })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to update job title');
+      }
+
+      const updatedUser = await response.json();
+
+      // Update user in state and localStorage
+      setUser(updatedUser);
+      localStorage.setItem('aura_user', JSON.stringify(updatedUser));
+
+      // Complete the job title selection flow
+      setPendingJobTitle(false);
+      localStorage.removeItem('aura_pending_job_title');
+
+      console.log('✅ Job title updated:', jobTitle);
+      return { success: true, user: updatedUser };
+    } catch (error: any) {
+      console.error('❌ Job title update error:', error);
+      return { success: false, error: error.message };
+    }
   };
 
   // Refresh user data
@@ -196,11 +247,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     isAuthenticated: !!token && !!user,
     pendingInvitation,
+    pendingJobTitle,
     register,
     login,
     logout,
     refreshUser,
-    completeInvitation
+    completeInvitation,
+    updateJobTitle
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

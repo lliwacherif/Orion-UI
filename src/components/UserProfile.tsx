@@ -332,6 +332,33 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, tokenUsage }
                 </div>
               )}
 
+              {/* Job Title */}
+              {user.job_title && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                    {language === 'en' ? 'Job Title' : 'Titre de poste'}
+                  </label>
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg px-4 py-3 border border-blue-200">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">
+                        {user.job_title === 'Doctor' && '🩺'}
+                        {user.job_title === 'Lawyer' && '⚖️'}
+                        {user.job_title === 'Engineer' && '🔧'}
+                        {user.job_title === 'Accountant' && '📊'}
+                      </span>
+                      <p className="text-gray-900 font-medium">
+                        {language === 'en' ? user.job_title : (
+                          user.job_title === 'Doctor' ? 'Médecin' :
+                          user.job_title === 'Lawyer' ? 'Avocat' :
+                          user.job_title === 'Engineer' ? 'Ingénieur' :
+                          user.job_title === 'Accountant' ? 'Comptable' : user.job_title
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
 
 
               {/* Session Info */}

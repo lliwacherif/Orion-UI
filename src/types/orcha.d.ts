@@ -133,8 +133,11 @@ export interface User {
   full_name: string | null;
   is_active: boolean;
   plan_type: string;
+  job_title: string;
   created_at: string;
 }
+
+export type JobTitle = 'Doctor' | 'Lawyer' | 'Engineer' | 'Accountant';
 
 export interface AuthResponse {
   access_token: string;

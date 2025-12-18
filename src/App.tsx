@@ -7,6 +7,7 @@ import { ConversationProvider } from './context/ConversationContext';
 import { ModelProvider } from './context/ModelContext';
 import Auth from './components/Auth';
 import InvitationCode from './components/InvitationCode';
+import JobTitleSelector from './components/JobTitleSelector';
 import ChatWindow from './components/ChatWindow';
 import { AgentTaskService } from './services/agentTaskService';
 import { chat, webSearch } from './api/orcha';
@@ -24,17 +25,17 @@ const queryClient = new QueryClient({
 });
 
 const AppContent: React.FC = () => {
-  const { user, isAuthenticated, loading, pendingInvitation } = useAuth();
+  const { user, isAuthenticated, loading, pendingInvitation, pendingJobTitle } = useAuth();
   const { session, login } = useSession();
   const [agentNotification, setAgentNotification] = useState<AgentNotificationData | null>(null);
 
   // Sync authenticated user with session
   useEffect(() => {
-    if (user && !session && !pendingInvitation) {
-      // Create session from authenticated user ONLY if invitation is not pending
+    if (user && !session && !pendingInvitation && !pendingJobTitle) {
+      // Create session from authenticated user ONLY if onboarding is complete
       login(user.id.toString(), undefined);
     }
-  }, [user, session, login, pendingInvitation]);
+  }, [user, session, login, pendingInvitation, pendingJobTitle]);
 
   // Agent Task Scheduler
   useEffect(() => {
@@ -131,6 +132,8 @@ const AppContent: React.FC = () => {
       {isAuthenticated ? (
         pendingInvitation ? (
           <InvitationCode />
+        ) : pendingJobTitle ? (
+          <JobTitleSelector />
         ) : (
           session ? <ChatWindow /> : <div>Loading...</div>
         )
