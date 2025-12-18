@@ -2,6 +2,13 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import type { User, AuthResponse, JobTitle } from '../types/orcha';
 
+interface PendingRegistration {
+  username: string;
+  email: string;
+  password: string;
+  fullName: string;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -9,12 +16,13 @@ interface AuthContextType {
   isAuthenticated: boolean;
   pendingInvitation: boolean;
   pendingJobTitle: boolean;
-  register: (username: string, email: string, password: string, fullName?: string) => Promise<AuthResult>;
+  pendingRegistration: PendingRegistration | null;
+  startRegistration: (username: string, email: string, password: string, fullName?: string) => void;
+  completeRegistration: (jobTitle: JobTitle) => Promise<AuthResult>;
   login: (username: string, password: string) => Promise<AuthResult>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   completeInvitation: () => void;
-  updateJobTitle: (jobTitle: JobTitle) => Promise<AuthResult>;
 }
 
 interface AuthResult {
@@ -38,15 +46,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const [pendingInvitation, setPendingInvitation] = useState(false);
   const [pendingJobTitle, setPendingJobTitle] = useState(false);
+  const [pendingRegistration, setPendingRegistration] = useState<PendingRegistration | null>(null);
 
   // Load user and settings from localStorage on mount
   useEffect(() => {
     const savedToken = localStorage.getItem('aura_token');
     const savedUser = localStorage.getItem('aura_user');
+    const savedPendingReg = localStorage.getItem('aura_pending_registration');
     const isPendingInvitation = localStorage.getItem('aura_pending_invitation') === 'true';
     const isPendingJobTitle = localStorage.getItem('aura_pending_job_title') === 'true';
 
-    if (savedToken && savedUser) {
+    // Check if there's a pending registration (user in onboarding flow)
+    if (savedPendingReg) {
+      try {
+        setPendingRegistration(JSON.parse(savedPendingReg));
+        setPendingInvitation(isPendingInvitation);
+        setPendingJobTitle(isPendingJobTitle);
+      } catch (error) {
+        console.error('Failed to parse pending registration:', error);
+        localStorage.removeItem('aura_pending_registration');
+      }
+    } else if (savedToken && savedUser) {
+      // Existing logged in user
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
@@ -63,22 +84,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Register new user
-  const register = async (
+  // Step 1: Start registration - store data locally and move to invitation code
+  const startRegistration = (
     username: string,
     email: string,
     password: string,
     fullName: string = ''
-  ): Promise<AuthResult> => {
+  ): void => {
+    const regData: PendingRegistration = {
+      username,
+      email,
+      password,
+      fullName
+    };
+
+    setPendingRegistration(regData);
+    setPendingInvitation(true);
+
+    localStorage.setItem('aura_pending_registration', JSON.stringify(regData));
+    localStorage.setItem('aura_pending_invitation', 'true');
+
+    console.log('📝 Registration data saved, moving to invitation code step');
+  };
+
+  // Step 3: Complete registration - call API with all data including job title
+  const completeRegistration = async (jobTitle: JobTitle): Promise<AuthResult> => {
+    if (!pendingRegistration) {
+      return { success: false, error: 'No pending registration data' };
+    }
+
     try {
       const response = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username,
-          email,
-          password,
-          full_name: fullName || null
+          username: pendingRegistration.username,
+          email: pendingRegistration.email,
+          password: pendingRegistration.password,
+          full_name: pendingRegistration.fullName || null,
+          job_title: jobTitle
         })
       });
 
@@ -93,12 +137,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(data.access_token);
       setUser(data.user);
 
-      // NEW: Set pending invitation flag for new users
-      setPendingInvitation(true);
+      // Clear pending states
+      setPendingRegistration(null);
+      setPendingInvitation(false);
+      setPendingJobTitle(false);
 
+      localStorage.removeItem('aura_pending_registration');
+      localStorage.removeItem('aura_pending_invitation');
+      localStorage.removeItem('aura_pending_job_title');
       localStorage.setItem('aura_token', data.access_token);
       localStorage.setItem('aura_user', JSON.stringify(data.user));
-      localStorage.setItem('aura_pending_invitation', 'true');
 
       console.log('✅ Registration successful:', data.user);
       return { success: true, user: data.user };
@@ -163,10 +211,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     setPendingInvitation(false);
     setPendingJobTitle(false);
+    setPendingRegistration(null);
     localStorage.removeItem('aura_token');
     localStorage.removeItem('aura_user');
     localStorage.removeItem('aura_pending_invitation');
     localStorage.removeItem('aura_pending_job_title');
+    localStorage.removeItem('aura_pending_registration');
     console.log('👋 User logged out');
   };
 
@@ -177,45 +227,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('aura_pending_invitation');
     localStorage.setItem('aura_pending_job_title', 'true');
     console.log('✅ Invitation code verified - now select job title');
-  };
-
-  // Update user's job title
-  const updateJobTitle = async (jobTitle: JobTitle): Promise<AuthResult> => {
-    if (!token || !user) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    try {
-      const response = await fetch(`${API_BASE}/auth/update-job-title`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ job_title: jobTitle })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to update job title');
-      }
-
-      const updatedUser = await response.json();
-
-      // Update user in state and localStorage
-      setUser(updatedUser);
-      localStorage.setItem('aura_user', JSON.stringify(updatedUser));
-
-      // Complete the job title selection flow
-      setPendingJobTitle(false);
-      localStorage.removeItem('aura_pending_job_title');
-
-      console.log('✅ Job title updated:', jobTitle);
-      return { success: true, user: updatedUser };
-    } catch (error: any) {
-      console.error('❌ Job title update error:', error);
-      return { success: false, error: error.message };
-    }
   };
 
   // Refresh user data
@@ -241,19 +252,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // For the registration flow, we're "authenticated" if we have pending registration data
+  const isInRegistrationFlow = !!pendingRegistration;
+
   const value: AuthContextType = {
     user,
     token,
     loading,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: (!!token && !!user) || isInRegistrationFlow,
     pendingInvitation,
     pendingJobTitle,
-    register,
+    pendingRegistration,
+    startRegistration,
+    completeRegistration,
     login,
     logout,
     refreshUser,
-    completeInvitation,
-    updateJobTitle
+    completeInvitation
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

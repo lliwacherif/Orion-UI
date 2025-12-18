@@ -73,7 +73,7 @@ const JobTitleSelector: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { updateJobTitle, logout } = useAuth();
+  const { completeRegistration, logout } = useAuth();
   const { language, toggleLanguage } = useLanguage();
 
   const handleSelect = (title: JobTitle) => {
@@ -90,14 +90,15 @@ const JobTitleSelector: React.FC = () => {
     setLoading(true);
     setError('');
 
-    const result = await updateJobTitle(selectedTitle);
+    // Now actually create the account with all data including job title
+    const result = await completeRegistration(selectedTitle);
 
     setLoading(false);
 
     if (!result.success) {
-      setError(result.error || (language === 'en' ? 'Failed to update job title' : 'Échec de la mise à jour du titre de poste'));
+      setError(result.error || (language === 'en' ? 'Failed to create account' : 'Échec de la création du compte'));
     }
-    // If successful, AuthContext will update and user will be redirected
+    // If successful, AuthContext will update and user will be redirected to the app
   };
 
   return (
@@ -147,6 +148,9 @@ const JobTitleSelector: React.FC = () => {
             <h2 className="mb-2 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#558EFA' }}>
               {language === 'en' ? 'What\'s Your Profession?' : 'Quelle est votre profession?'}
             </h2>
+            <p className="mb-1 text-center text-gray-500 text-sm">
+              {language === 'en' ? 'Step 3 of 3' : 'Étape 3 sur 3'}
+            </p>
             <p className="mb-6 sm:mb-8 text-center text-gray-600 text-sm">
               {language === 'en'
                 ? 'Select your job title to personalize your experience'
@@ -228,7 +232,7 @@ const JobTitleSelector: React.FC = () => {
               ))}
             </div>
 
-            {/* Confirm Button */}
+            {/* Create Account Button */}
             <button
               onClick={handleConfirm}
               disabled={loading || !selectedTitle}
@@ -240,10 +244,10 @@ const JobTitleSelector: React.FC = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  {language === 'en' ? 'Setting up...' : 'Configuration...'}
+                  {language === 'en' ? 'Creating account...' : 'Création du compte...'}
                 </span>
               ) : (
-                language === 'en' ? 'Continue' : 'Continuer'
+                language === 'en' ? 'Create Account' : 'Créer un compte'
               )}
             </button>
 

@@ -75,8 +75,11 @@ const InvitationCode: React.FC = () => {
                     {/* Card Content */}
                     <div className="relative z-10 p-6 sm:p-8 md:p-10">
                         <h2 className="mb-2 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#558EFA' }}>
-                            {language === 'en' ? 'Welcome!' : 'Bienvenue!'}
+                            {language === 'en' ? 'Invitation Code' : 'Code d\'invitation'}
                         </h2>
+                        <p className="mb-1 text-center text-gray-500 text-sm">
+                            {language === 'en' ? 'Step 2 of 3' : 'Étape 2 sur 3'}
+                        </p>
                         <p className="mb-6 sm:mb-8 text-center text-gray-600 text-sm">
                             {language === 'en'
                                 ? 'Please enter your invitation code to continue.'

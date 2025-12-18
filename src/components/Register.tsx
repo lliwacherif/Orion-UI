@@ -17,7 +17,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { startRegistration } = useAuth();
   const { language, toggleLanguage } = useLanguage();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,7 +27,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -44,7 +44,9 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
     setLoading(true);
 
-    const result = await register(
+    // Store registration data locally and move to invitation code step
+    // No API call yet - that happens after job title selection
+    startRegistration(
       formData.username,
       formData.email,
       formData.password,
@@ -52,11 +54,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
     );
 
     setLoading(false);
-
-    if (!result.success) {
-      setError(result.error || 'Registration failed');
-    }
-    // If successful, the AuthContext will update and user will be redirected
+    // AuthContext will update pendingInvitation and show invitation code screen
   };
 
   return (
@@ -105,9 +103,12 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
           {/* Card Content */}
           <div className="relative z-10 p-6 sm:p-8 md:p-10">
-            <h2 className="mb-6 sm:mb-8 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#558EFA' }}>
+            <h2 className="mb-2 text-center text-2xl sm:text-3xl font-bold" style={{ color: '#558EFA' }}>
               {language === 'en' ? 'Create Account' : 'Créer un compte'}
             </h2>
+            <p className="mb-6 sm:mb-8 text-center text-gray-500 text-sm">
+              {language === 'en' ? 'Step 1 of 3' : 'Étape 1 sur 3'}
+            </p>
 
             {/* Error Message */}
             {error && (
@@ -213,15 +214,15 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 />
               </div>
 
-              {/* Create Account Button */}
+              {/* Continue Button */}
               <button
                 type="submit"
                 className="w-full rounded-lg bg-gradient-to-r from-green-400 to-cyan-500 py-3 px-4 text-base font-medium text-white shadow-sm hover:from-green-500 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 disabled={loading}
               >
                 {loading
-                  ? (language === 'en' ? 'Creating account...' : 'Création du compte...')
-                  : (language === 'en' ? 'Create Account' : 'Créer un compte')
+                  ? (language === 'en' ? 'Please wait...' : 'Veuillez patienter...')
+                  : (language === 'en' ? 'Continue' : 'Continuer')
                 }
               </button>
 
