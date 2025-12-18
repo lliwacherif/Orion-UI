@@ -579,6 +579,82 @@ export const getMemory = async (
   }
 };
 
+// ==================== USER SETTINGS API FUNCTIONS ====================
+
+/**
+ * Update user's email
+ * 
+ * @param userId - The user ID
+ * @param newEmail - The new email address
+ * @param currentPassword - Current password for verification
+ * @returns Promise with update status
+ * @throws AxiosError if the request fails
+ */
+export const updateUserEmail = async (userId: number, newEmail: string, currentPassword: string): Promise<{ status: string; message: string }> => {
+  try {
+    const traceId = uuidv4();
+
+    const response = await api.put<{ status: string; message: string }>(`/auth/users/${userId}/email`, {
+      new_email: newEmail,
+      current_password: currentPassword
+    }, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('📧 Update Email Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Update email error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Update user's password
+ * 
+ * @param userId - The user ID
+ * @param currentPassword - Current password for verification
+ * @param newPassword - The new password
+ * @returns Promise with update status
+ * @throws AxiosError if the request fails
+ */
+export const updateUserPassword = async (userId: number, currentPassword: string, newPassword: string): Promise<{ status: string; message: string }> => {
+  try {
+    const traceId = uuidv4();
+
+    const response = await api.put<{ status: string; message: string }>(`/auth/users/${userId}/password`, {
+      current_password: currentPassword,
+      new_password: newPassword
+    }, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('🔐 Update Password Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Update password error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
 // ==================== FOLDER API FUNCTIONS ====================
 
 /**

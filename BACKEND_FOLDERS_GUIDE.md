@@ -1,6 +1,126 @@
-# Backend Folders API Implementation Guide
+# Backend API Implementation Guide
 
-The frontend has been updated to use backend APIs for folder management. You need to implement the following endpoints in your backend.
+The frontend has been updated to use backend APIs for folder management and user settings. You need to implement the following endpoints in your backend.
+
+---
+
+## Part 1: User Settings API (Email & Password Update)
+
+### Database Requirements
+No additional tables needed - uses existing `users` table.
+
+### API Endpoints for User Settings
+
+#### 1. PUT `/api/v1/auth/users/{user_id}/email` - Update Email
+
+**Request Body:**
+```json
+{
+    "new_email": "newemail@example.com",
+    "current_password": "userpassword123"
+}
+```
+
+**Response (Success):**
+```json
+{
+    "status": "ok",
+    "message": "Email updated successfully"
+}
+```
+
+**Response (Error):**
+```json
+{
+    "detail": "Incorrect password"
+}
+```
+
+#### 2. PUT `/api/v1/auth/users/{user_id}/password` - Update Password
+
+**Request Body:**
+```json
+{
+    "current_password": "oldpassword123",
+    "new_password": "newpassword456"
+}
+```
+
+**Response (Success):**
+```json
+{
+    "status": "ok",
+    "message": "Password updated successfully"
+}
+```
+
+**Response (Error):**
+```json
+{
+    "detail": "Incorrect current password"
+}
+```
+
+### FastAPI Implementation for User Settings
+
+```python
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, EmailStr
+from passlib.context import CryptContext
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+class UpdateEmailRequest(BaseModel):
+    new_email: EmailStr
+    current_password: str
+
+class UpdatePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+@router.put("/users/{user_id}/email")
+async def update_user_email(user_id: int, request: UpdateEmailRequest, db: Session = Depends(get_db)):
+    """Update user's email address"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not pwd_context.verify(request.current_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+    
+    # Check if email is already taken
+    existing = db.query(User).filter(User.email == request.new_email, User.id != user_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already in use")
+    
+    user.email = request.new_email
+    db.commit()
+    
+    return {"status": "ok", "message": "Email updated successfully"}
+
+@router.put("/users/{user_id}/password")
+async def update_user_password(user_id: int, request: UpdatePasswordRequest, db: Session = Depends(get_db)):
+    """Update user's password"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not pwd_context.verify(request.current_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect current password")
+    
+    # Hash and save new password
+    user.hashed_password = pwd_context.hash(request.new_password)
+    db.commit()
+    
+    return {"status": "ok", "message": "Password updated successfully"}
+```
+
+---
+
+## Part 2: Folders API
 
 ## Database Schema
 
