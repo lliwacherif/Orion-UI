@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useConversation } from '../context/ConversationContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
@@ -6,9 +6,9 @@ import { useModel } from '../context/ModelContext';
 import { translations } from '../translations';
 import type { TokenUsage, Folder } from '../types/orcha';
 import UserProfile from './UserProfile';
-import { getTokenUsage } from '../api/orcha';
+import { getTokenUsage, getUserFolders, createFolder, deleteFolder, addConversationToFolder } from '../api/orcha';
 import { AgentTaskService } from '../services/agentTaskService';
-import { Clock, Globe, MessageSquare, Menu, Search, FolderPlus, Folder as FolderIcon, ChevronRight, ChevronDown, Plus } from 'lucide-react';
+import { Clock, Globe, MessageSquare, Menu, Search, FolderPlus, Folder as FolderIcon, ChevronRight, ChevronDown, Plus, Trash2 } from 'lucide-react';
 
 interface ChatSidebarProps {
   isOpen: boolean;
@@ -196,61 +196,122 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Folders State
-  const [folders, setFolders] = useState<Folder[]>(() => {
-    const saved = localStorage.getItem('orion_folders');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  const [foldersLoading, setFoldersLoading] = useState(false);
 
-  // Persist folders
+  // Local expansion state (not persisted to backend - UI only)
+  const [expandedFolders, setExpandedFolders] = useState<Set<number>>(new Set());
+
+  // Load folders from backend
+  const loadFolders = useCallback(async () => {
+    if (!user?.id) return;
+
+    setFoldersLoading(true);
+    try {
+      const fetchedFolders = await getUserFolders(user.id);
+      setFolders(fetchedFolders);
+      // Auto-expand all folders initially
+      setExpandedFolders(new Set(fetchedFolders.map(f => f.id)));
+      console.log('📁 Folders loaded from backend:', fetchedFolders);
+    } catch (error) {
+      console.error('❌ Failed to load folders:', error);
+      // Fallback: keep current folders or empty
+    } finally {
+      setFoldersLoading(false);
+    }
+  }, [user?.id]);
+
+  // Load folders when user changes
   useEffect(() => {
-    localStorage.setItem('orion_folders', JSON.stringify(folders));
-  }, [folders]);
+    if (user?.id) {
+      loadFolders();
+    } else {
+      setFolders([]);
+    }
+  }, [user?.id, loadFolders]);
 
-  // Handle Folder Creation
-  const handleCreateFolder = () => {
-    if (!newFolderName.trim()) {
+  // Handle Folder Creation - now uses backend
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim() || !user?.id) {
       setIsCreatingFolder(false);
       return;
     }
 
-    const newFolder: Folder = {
-      id: Date.now(),
-      name: newFolderName,
-      conversation_ids: [],
-      is_expanded: true,
-      created_at: new Date().toISOString()
-    };
+    try {
+      const newFolder = await createFolder({
+        user_id: user.id,
+        name: newFolderName.trim()
+      });
 
-    setFolders(prev => [newFolder, ...prev]);
+      setFolders(prev => [newFolder, ...prev]);
+      setExpandedFolders(prev => new Set([...prev, newFolder.id]));
+      console.log('📁 Folder created:', newFolder);
+    } catch (error) {
+      console.error('❌ Failed to create folder:', error);
+      alert(language === 'en' ? 'Failed to create folder' : 'Échec de la création du dossier');
+    }
+
     setNewFolderName('');
     setIsCreatingFolder(false);
   };
 
-  // Toggle Folder Expansion
+  // Toggle Folder Expansion (UI only - not persisted)
   const toggleFolder = (folderId: number) => {
-    setFolders(prev => prev.map(f =>
-      f.id === folderId ? { ...f, is_expanded: !f.is_expanded } : f
-    ));
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderId)) {
+        newSet.delete(folderId);
+      } else {
+        newSet.add(folderId);
+      }
+      return newSet;
+    });
   };
 
-  // Create New Chat INSIDE a Folder
+  // Delete Folder
+  const handleDeleteFolder = async (folderId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user?.id) return;
+
+    const confirmMsg = language === 'en' 
+      ? 'Delete this folder? Conversations inside will NOT be deleted.'
+      : 'Supprimer ce dossier ? Les conversations ne seront PAS supprimées.';
+    
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      await deleteFolder(user.id, folderId);
+      setFolders(prev => prev.filter(f => f.id !== folderId));
+      console.log('📁 Folder deleted:', folderId);
+    } catch (error) {
+      console.error('❌ Failed to delete folder:', error);
+      alert(language === 'en' ? 'Failed to delete folder' : 'Échec de la suppression du dossier');
+    }
+  };
+
+  // Create New Chat INSIDE a Folder - now uses backend
   const handleNewChatInFolder = async (folderId: number, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user?.id) return;
+
     // Create the conversation
     const newConvId = await createNewConversation();
     if (newConvId) {
-      // Add to folder
-      setFolders(prev => prev.map(f =>
-        f.id === folderId ? { ...f, conversation_ids: [newConvId, ...f.conversation_ids], is_expanded: true } : f
-      ));
+      try {
+        // Add to folder via backend API
+        const updatedFolder = await addConversationToFolder(user.id, folderId, newConvId);
+        setFolders(prev => prev.map(f => f.id === folderId ? updatedFolder : f));
+        setExpandedFolders(prev => new Set([...prev, folderId]));
+        console.log('📁 Conversation added to folder:', { folderId, newConvId });
+      } catch (error) {
+        console.error('❌ Failed to add conversation to folder:', error);
+        // Conversation was created but not added to folder - it will appear in main list
+      }
     }
     setModel('chat');
   };
-
-  // Assign existing chat to folder (Optional: Drop logic placeholder)
-  // For now we assume chats start in generic list unless created in folder
 
   // Filter conversations based on search query
   useEffect(() => {
@@ -512,64 +573,88 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({ isOpen, onToggle, tokenUsage 
 
           {/* Folders List */}
           <div className="space-y-1 mb-4">
-            {folders.map(folder => (
-              <div key={folder.id} className="rounded-lg overflow-hidden border border-white/5 bg-white/5">
-                {/* Folder Header */}
-                <div
-                  className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-white/10 transition group"
-                  onClick={() => toggleFolder(folder.id)}
-                >
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    {folder.is_expanded ? <ChevronDown className="w-3 h-3 text-white/60" /> : <ChevronRight className="w-3 h-3 text-white/60" />}
-                    <span className="text-sm font-medium text-white/90 truncate">{folder.name}</span>
-                    <span className="text-xs text-white/40">({folder.conversation_ids.length})</span>
-                  </div>
-
-                  {/* New Chat in Folder Button */}
-                  <button
-                    onClick={(e) => handleNewChatInFolder(folder.id, e)}
-                    className="p-1 opacity-0 group-hover:opacity-100 hover:bg-emerald-500/20 hover:text-emerald-400 rounded transition"
-                    title={language === 'en' ? 'New Chat in Folder' : 'Nouveau chat dans le dossier'}
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                </div>
-
-                {/* Folder Content (Chats) */}
-                {folder.is_expanded && (
-                  <div className="bg-black/20 border-t border-white/5">
-                    {folder.conversation_ids.length === 0 ? (
-                      <div className="px-4 py-2 text-xs text-white/30 italic">
-                        {language === 'en' ? 'Empty folder' : 'Dossier vide'}
+            {foldersLoading ? (
+              <div className="px-4 py-2 text-xs text-white/50">
+                {language === 'en' ? 'Loading folders...' : 'Chargement des dossiers...'}
+              </div>
+            ) : folders.length === 0 ? (
+              <div className="px-4 py-2 text-xs text-white/30 italic">
+                {language === 'en' ? 'No folders yet' : 'Aucun dossier'}
+              </div>
+            ) : (
+              folders.map(folder => {
+                const isExpanded = expandedFolders.has(folder.id);
+                return (
+                  <div key={folder.id} className="rounded-lg overflow-hidden border border-white/5 bg-white/5">
+                    {/* Folder Header */}
+                    <div
+                      className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-white/10 transition group"
+                      onClick={() => toggleFolder(folder.id)}
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        {isExpanded ? <ChevronDown className="w-3 h-3 text-white/60" /> : <ChevronRight className="w-3 h-3 text-white/60" />}
+                        <span className="text-sm font-medium text-white/90 truncate">{folder.name}</span>
+                        <span className="text-xs text-white/40">({folder.conversation_ids?.length || 0})</span>
                       </div>
-                    ) : (
-                      conversations
-                        .filter(c => folder.conversation_ids.includes(c.id))
-                        .map(conv => (
-                          <div
-                            key={conv.id}
-                            onClick={() => switchConversation(conv.id)}
-                            className={`group flex items-center gap-2 px-8 py-2 cursor-pointer transition text-sm ${conv.id === currentConversationId
-                              ? 'bg-white/10 text-white border-l-2 border-emerald-400'
-                              : 'text-white/70 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
-                              }`}
-                          >
-                            <span className="truncate flex-1">{conv.title || 'Untitled'}</span>
-                            <button
-                              onClick={(e) => handleDelete(conv.id, e)} // Deleting chat removes it from folder too naturally as it deletes the conv
-                              className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-red-400 transition"
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
+
+                      {/* Folder Actions */}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                        {/* New Chat in Folder Button */}
+                        <button
+                          onClick={(e) => handleNewChatInFolder(folder.id, e)}
+                          className="p-1 hover:bg-emerald-500/20 hover:text-emerald-400 rounded transition"
+                          title={language === 'en' ? 'New Chat in Folder' : 'Nouveau chat dans le dossier'}
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                        {/* Delete Folder Button */}
+                        <button
+                          onClick={(e) => handleDeleteFolder(folder.id, e)}
+                          className="p-1 hover:bg-red-500/20 hover:text-red-400 rounded transition"
+                          title={language === 'en' ? 'Delete Folder' : 'Supprimer le dossier'}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Folder Content (Chats) */}
+                    {isExpanded && (
+                      <div className="bg-black/20 border-t border-white/5">
+                        {(!folder.conversation_ids || folder.conversation_ids.length === 0) ? (
+                          <div className="px-4 py-2 text-xs text-white/30 italic">
+                            {language === 'en' ? 'Empty folder' : 'Dossier vide'}
                           </div>
-                        ))
+                        ) : (
+                          conversations
+                            .filter(c => folder.conversation_ids.includes(c.id))
+                            .map(conv => (
+                              <div
+                                key={conv.id}
+                                onClick={() => switchConversation(conv.id)}
+                                className={`group flex items-center gap-2 px-8 py-2 cursor-pointer transition text-sm ${conv.id === currentConversationId
+                                  ? 'bg-white/10 text-white border-l-2 border-emerald-400'
+                                  : 'text-white/70 hover:bg-white/5 hover:text-white border-l-2 border-transparent'
+                                  }`}
+                              >
+                                <span className="truncate flex-1">{conv.title || 'Untitled'}</span>
+                                <button
+                                  onClick={(e) => handleDelete(conv.id, e)}
+                                  className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-red-400 transition"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            ))}
+                );
+              })
+            )}
           </div>
         </div>
 

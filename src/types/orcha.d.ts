@@ -217,10 +217,30 @@ export interface PulseResponse {
 
 export interface Folder {
   id: number;
+  user_id: number;
   name: string;
   conversation_ids: number[];
   is_expanded?: boolean;
-  created_at?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface CreateFolderRequest {
+  user_id: number;
+  name: string;
+}
+
+export interface UpdateFolderRequest {
+  name?: string;
+  conversation_ids?: number[];
+}
+
+export interface AddConversationToFolderRequest {
+  conversation_id: number;
+}
+
+export interface RemoveConversationFromFolderRequest {
+  conversation_id: number;
 }
 
 // Web Search feature types

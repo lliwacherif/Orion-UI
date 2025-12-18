@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import type { RouteRequest, RouteResponse, ChatRequest, ChatResponse, OCRExtractRequest, OCRExtractResponse, Conversation, CreateConversationRequest, UpdateConversationRequest, PulseResponse, WebSearchRequest, WebSearchResponse } from '../types/orcha';
+import type { RouteRequest, RouteResponse, ChatRequest, ChatResponse, OCRExtractRequest, OCRExtractResponse, Conversation, CreateConversationRequest, UpdateConversationRequest, PulseResponse, WebSearchRequest, WebSearchResponse, Folder, CreateFolderRequest, UpdateFolderRequest } from '../types/orcha';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -570,6 +570,207 @@ export const getMemory = async (
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       console.error('Get memory error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+// ==================== FOLDER API FUNCTIONS ====================
+
+/**
+ * Get user's folders
+ * 
+ * @param userId - The user ID to fetch folders for
+ * @returns Promise with array of folders
+ * @throws AxiosError if the request fails
+ */
+export const getUserFolders = async (userId: number): Promise<Folder[]> => {
+  try {
+    const traceId = uuidv4();
+
+    const response = await api.get<Folder[]>(`/folders/${userId}`, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('📁 Get Folders Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Get folders error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Create a new folder
+ * 
+ * @param payload - The folder creation request payload
+ * @returns Promise with the created folder
+ * @throws AxiosError if the request fails
+ */
+export const createFolder = async (payload: CreateFolderRequest): Promise<Folder> => {
+  try {
+    const traceId = uuidv4();
+
+    const response = await api.post<Folder>('/folders', payload, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('📁 Create Folder Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Create folder error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Update a folder (name or conversation_ids)
+ * 
+ * @param userId - The user ID
+ * @param folderId - The folder ID to update
+ * @param payload - The update request payload
+ * @returns Promise with updated folder
+ * @throws AxiosError if the request fails
+ */
+export const updateFolder = async (userId: number, folderId: number, payload: UpdateFolderRequest): Promise<Folder> => {
+  try {
+    const traceId = uuidv4();
+
+    const response = await api.put<Folder>(`/folders/${userId}/${folderId}`, payload, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('📁 Update Folder Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Update folder error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Delete a folder
+ * 
+ * @param userId - The user ID
+ * @param folderId - The folder ID to delete
+ * @returns Promise with deletion status
+ * @throws AxiosError if the request fails
+ */
+export const deleteFolder = async (userId: number, folderId: number): Promise<{ status: string; message: string }> => {
+  try {
+    const traceId = uuidv4();
+
+    const response = await api.delete<{ status: string; message: string }>(`/folders/${userId}/${folderId}`, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('📁 Delete Folder Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Delete folder error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Add a conversation to a folder
+ * 
+ * @param userId - The user ID
+ * @param folderId - The folder ID
+ * @param conversationId - The conversation ID to add
+ * @returns Promise with updated folder
+ * @throws AxiosError if the request fails
+ */
+export const addConversationToFolder = async (userId: number, folderId: number, conversationId: number): Promise<Folder> => {
+  try {
+    const traceId = uuidv4();
+
+    const response = await api.post<Folder>(`/folders/${userId}/${folderId}/conversations`, { conversation_id: conversationId }, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('📁 Add Conversation to Folder Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Add conversation to folder error:', {
+        message: axiosError.message,
+        response: axiosError.response?.data,
+        status: axiosError.response?.status,
+      });
+    }
+    throw error;
+  }
+};
+
+/**
+ * Remove a conversation from a folder
+ * 
+ * @param userId - The user ID
+ * @param folderId - The folder ID
+ * @param conversationId - The conversation ID to remove
+ * @returns Promise with updated folder
+ * @throws AxiosError if the request fails
+ */
+export const removeConversationFromFolder = async (userId: number, folderId: number, conversationId: number): Promise<Folder> => {
+  try {
+    const traceId = uuidv4();
+
+    const response = await api.delete<Folder>(`/folders/${userId}/${folderId}/conversations/${conversationId}`, {
+      headers: {
+        'x-trace-id': traceId,
+      },
+    });
+
+    console.log('📁 Remove Conversation from Folder Response:', response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      console.error('Remove conversation from folder error:', {
         message: axiosError.message,
         response: axiosError.response?.data,
         status: axiosError.response?.status,
