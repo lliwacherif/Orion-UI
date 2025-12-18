@@ -344,6 +344,177 @@ export const translations = {
       },
     },
   },
+
+  ar: {
+    // Login page
+    login: {
+      title: 'Orion',
+      subtitle: 'واجهة الذكاء الاصطناعي متعددة الوكلاء',
+      userIdLabel: 'معرّف المستخدم',
+      userIdPlaceholder: 'أدخل معرّف المستخدم',
+      tenantIdLabel: 'معرّف المستأجر',
+      tenantIdOptional: '(اختياري)',
+      tenantIdPlaceholder: 'أدخل معرّف المستأجر (اختياري)',
+      continueButton: 'متابعة',
+      demoText: 'حل مدعوم بالذكاء الاصطناعي من CherifCorp Technologies',
+      required: '*',
+    },
+
+    // Chat window
+    chat: {
+      title: 'Orion',
+      tenant: 'المستأجر',
+      clearButton: 'مسح',
+      logoutButton: 'تسجيل الخروج',
+      clearConfirm: 'هل أنت متأكد من رغبتك في مسح سجل المحادثات؟',
+      infoBannerTitle: 'هذه الواجهة تستدعي فقط',
+      infoBannerText: 'يتم إرسال الرسائل إلى ORCHA، الذي يُرجع قرار التوجيه مع نقطة النهاية الموصى بها والحمولة المُعدة.',
+    },
+
+    // Message list
+    messages: {
+      emptyTitle: 'لا توجد رسائل بعد',
+      emptySubtitle: 'أرسل رسالة لترى Orion في العمل',
+    },
+
+    // Message input
+    input: {
+      placeholder: 'اكتب رسالة...',
+      useRag: 'استخدام RAG',
+      useRagTooltip: '(التوليد المعزز بالاسترجاع)',
+      helpText: 'اضغط Enter للإرسال، Shift+Enter لسطر جديد. يدعم الصور وملفات PDF.',
+      attachFiles: 'إرفاق ملفات',
+      sendMessage: 'إرسال الرسالة',
+      attachmentOptions: 'خيارات المرفقات',
+      attachDocumentOrImage: 'إرفاق مستند أو صورة',
+      attachDocument: 'إرفاق مستند',
+      ocrMode: 'OCR',
+      extractingText: 'جارٍ استخراج النص...',
+      ocrFailed: 'فشل استخراج النص من الصورة',
+      selectImageFile: 'يرجى اختيار ملف صورة',
+      fileSizeTooLarge: 'يجب أن يكون حجم الملف أقل من 10 ميجابايت',
+      failedToProcess: 'فشل معالجة الصورة',
+    },
+
+    // Routing message
+    routing: {
+      title: 'قرار توجيه ORCHA',
+      endpoint: 'نقطة النهاية الموصى بها:',
+      reason: 'السبب:',
+      statusInfo: 'معلومات الحالة:',
+      status: 'الحالة:',
+      ocrQueued: 'OCR في قائمة الانتظار:',
+      jobIds: 'معرّفات المهام:',
+      preparedPayload: 'الحمولة المُعدة:',
+      copy: 'نسخ',
+      copied: 'تم النسخ!',
+      expand: 'توسيع',
+      collapse: 'طي',
+      callEndpoint: 'استدعاء نقطة النهاية الموصى بها',
+      demoMode: '(وضع العرض التوضيحي)',
+      yes: 'نعم',
+      no: 'لا',
+    },
+
+    // Badges
+    badges: {
+      ocr: 'OCR',
+      rag: 'RAG',
+      chat: 'محادثة',
+      api: 'API',
+    },
+
+    // Assistant message
+    assistant: {
+      sources: 'المصادر:',
+      thinking: 'جارٍ التفكير',
+      ocrQueued: 'جارٍ معالجة المرفقات... معرّفات المهام:',
+      errorTitle: 'خطأ',
+    },
+
+    // Sidebar
+    sidebar: {
+      newChat: 'محادثة جديدة',
+      deleteChat: 'حذف المحادثة',
+      confirmDelete: 'انقر مرة أخرى للتأكيد',
+      noChats: 'لا توجد محادثات بعد',
+      chatCount: 'محادثة(ات)',
+      openSidebar: 'فتح الشريط الجانبي',
+      closeSidebar: 'إغلاق الشريط الجانبي',
+    },
+
+    // OCR Extractor
+    ocr: {
+      title: 'مستخرج نص OCR',
+      subtitle: 'ارفع صورًا لاستخراج النص باستخدام OCR المدعوم بالذكاء الاصطناعي',
+      languageDetection: 'اكتشاف اللغة',
+      documentType: 'نوع المستند',
+      docTypePassport: 'جواز سفر',
+      docTypeIdCard: 'بطاقة هوية',
+      docTypeOther: 'مستند آخر',
+      imagePreview: 'معاينة الصورة',
+      chooseImage: 'اختر صورة',
+      extractText: 'استخراج النص',
+      processing: 'جارٍ المعالجة...',
+      clear: 'مسح',
+      extractedText: 'النص المستخرج',
+      cleanedData: 'البيانات المنظفة بالذكاء الاصطناعي',
+      cleaningData: 'جارٍ التنظيف واستخراج المعلومات...',
+      copy: 'نسخ',
+      copied: 'تم النسخ!',
+      lines: 'الأسطر',
+      language: 'اللغة',
+      file: 'الملف',
+      error: 'خطأ',
+      errorMessage: 'فشل استخراج النص من الصورة',
+      fileTypeError: 'يرجى اختيار ملف صورة',
+      fileSizeError: 'يجب أن يكون حجم الملف أقل من 10 ميجابايت',
+      selectImageError: 'يرجى اختيار صورة أولاً',
+    },
+
+    // Pulse Feature
+    pulse: {
+      title: 'Pulse',
+      buttonTooltip: 'عرض Pulse اليومي',
+      regenerateTooltip: 'إعادة توليد Pulse',
+      closeTooltip: 'إغلاق',
+      analyzing: 'جارٍ تحليل محادثاتك...',
+      analyzingSubtext: 'قد يستغرق هذا حتى 30 ثانية',
+      tryAgain: 'حاول مرة أخرى',
+      noPulseData: 'لا تتوفر بيانات Pulse',
+      noPulseSubtext: 'انقر على زر التحديث لإنشاء أول ملخص Pulse',
+      metadataGenerated: 'تم الإنشاء',
+      metadataConversations: 'المحادثات',
+      metadataMessages: 'الرسائل',
+      metadataNextUpdate: 'التحديث التالي',
+    },
+
+    // Model Selector
+    modelSelector: {
+      title: 'النماذج',
+    },
+
+    // Orion Assist
+    orionAssist: {
+      welcome: "مرحباً {userName}! أنا هنا للمساعدة. ماذا تحتاج؟",
+      greeting: "مرحباً! أنا Orion - Themis، مساعدك الشخصي لجمع البيانات. سأساعدك في جمع بعض المعلومات.",
+      askName: "للبدء، هل يمكنك إخباري باسمك؟",
+      askAge: "رائع! هل يمكنني معرفة عمرك؟",
+      askGender: "شكراً! ما هو جنسك؟",
+      askNationality: "وما هي جنسيتك؟",
+      askLocation: "أخيراً، أين تتواجد حالياً؟",
+      thankYou: "شكراً لتقديم جميع المعلومات! أقوم الآن بمعالجة بياناتك...",
+      extractionComplete: "إليك ملخص المعلومات التي قدمتها:",
+      extractionSystemPrompt: "حلل سجل المحادثة المقدم. استخرج الاسم والعمر والجنس والجنسية والموقع للمستخدم. أرجع النتيجة كملخص منظم مع القيم بخط عريض Markdown.",
+      dataFields: {
+        name: "الاسم",
+        age: "العمر",
+        gender: "الجنس",
+        nationality: "الجنسية",
+        location: "الموقع",
+      },
+    },
+  },
 };
 
 export type TranslationKey = keyof typeof translations.en;

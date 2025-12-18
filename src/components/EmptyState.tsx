@@ -43,6 +43,16 @@ const EmptyState: React.FC<EmptyStateProps> = () => {
         (name: string) => `${name}, rendons cette journée productive !`,
         (name: string) => `Salut ${name} ! Je suis là pour t'aider. De quoi as-tu besoin ?`,
       ],
+      ar: [
+        (name: string) => `مرحباً ${name}. هل أنت مستعد للبدء؟`,
+        (name: string) => `أهلاً ${name}! كيف يمكنني مساعدتك اليوم؟`,
+        (name: string) => `مرحباً بعودتك، ${name}. لنبدأ!`,
+        (name: string) => `مرحباً ${name}! ما الذي يشغل بالك؟`,
+        (name: string) => `سعيد برؤيتك، ${name}. ماذا نستكشف؟`,
+        (name: string) => `أهلاً ${name}! هل أنت مستعد لإنشاء شيء مذهل؟`,
+        (name: string) => `${name}، لنجعل هذا اليوم منتجاً!`,
+        (name: string) => `مرحباً ${name}! أنا هنا للمساعدة. ماذا تحتاج؟`,
+      ],
     };
     const templates = greetings[language];
     const conversationId = currentConversation?.id?.toString() || '0';
@@ -50,7 +60,7 @@ const EmptyState: React.FC<EmptyStateProps> = () => {
     const hash = conversationId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const index = hash % templates.length;
     // Use full_name if available, otherwise username, otherwise fallback
-    const userName = user?.full_name || user?.username || (language === 'en' ? 'there' : 'toi');
+    const userName = user?.full_name || user?.username || (language === 'en' ? 'there' : language === 'ar' ? 'صديقي' : 'toi');
     return templates[index](userName);
   }, [language, currentConversation?.id, user?.full_name, user?.username, currentModel]);
 

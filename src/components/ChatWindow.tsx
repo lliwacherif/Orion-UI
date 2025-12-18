@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useMutation } from 'react-query';
 import { useSession } from '../context/SessionContext';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage, type Language } from '../context/LanguageContext';
 import { useConversation } from '../context/ConversationContext';
 import { useModel } from '../context/ModelContext';
 import { chat, webSearch } from '../api/orcha';
@@ -25,7 +25,36 @@ import OrionAssistChat from './OrionAssistChat';
 const ChatWindow: React.FC = () => {
   const { session } = useSession();
   const { user } = useAuth();
-  const { language, toggleLanguage } = useLanguage();
+  const { language, toggleLanguage, setLanguage } = useLanguage();
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+  const langDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Check if user is a lawyer (can access Arabic)
+  const isLawyer = user?.job_title === 'Lawyer';
+
+  // Close language dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
+        setIsLangDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Language display names
+  const languageNames: Record<Language, string> = {
+    en: 'English',
+    fr: 'Français',
+    ar: 'العربية'
+  };
+
+  // Handle language change for lawyers
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    setIsLangDropdownOpen(false);
+  };
   const {
     currentConversationId,
     currentConversation,
@@ -393,16 +422,61 @@ const ChatWindow: React.FC = () => {
               <ModelSelector />
             </div>
             <div className="flex items-center gap-2">
-              {/* Language Toggle */}
-              <button
-                onClick={toggleLanguage}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition text-sm font-medium hover:bg-gray-100"
-                style={{ color: '#003A70' }}
-                aria-label="Toggle language"
-                title={language === 'en' ? 'Switch to French' : 'Passer à l\'anglais'}
-              >
-                <span className="text-sm font-semibold">{language === 'en' ? 'English' : 'Français'}</span>
-              </button>
+              {/* Language Toggle/Selector */}
+              {isLawyer ? (
+                /* Dropdown for lawyers with Arabic option */
+                <div className="relative" ref={langDropdownRef}>
+                  <button
+                    onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition text-sm font-medium hover:bg-gray-100"
+                    style={{ color: '#003A70' }}
+                    aria-label="Select language"
+                  >
+                    <span className="text-sm font-semibold">{languageNames[language]}</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${isLangDropdownOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {isLangDropdownOpen && (
+                    <div className="absolute top-full right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                      {(['fr', 'en', 'ar'] as Language[]).map((lang) => (
+                        <button
+                          key={lang}
+                          onClick={() => handleLanguageChange(lang)}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 transition flex items-center justify-between ${
+                            language === lang ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'
+                          }`}
+                          dir={lang === 'ar' ? 'rtl' : 'ltr'}
+                        >
+                          <span>{languageNames[lang]}</span>
+                          {language === lang && (
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Simple toggle for non-lawyers (French/English only) */
+                <button
+                  onClick={toggleLanguage}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition text-sm font-medium hover:bg-gray-100"
+                  style={{ color: '#003A70' }}
+                  aria-label="Toggle language"
+                  title={language === 'en' ? 'Passer au français' : 'Switch to English'}
+                >
+                  <span className="text-sm font-semibold">{language === 'en' ? 'English' : 'Français'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

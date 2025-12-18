@@ -1,7 +1,7 @@
 // @refresh reset
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type Language = 'en' | 'fr';
+export type Language = 'en' | 'fr' | 'ar';
 
 interface LanguageContextType {
   language: Language;
@@ -18,12 +18,12 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>('en');
+  const [language, setLanguageState] = useState<Language>('fr');
 
   // Load language from localStorage on mount
   useEffect(() => {
     const storedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY) as Language;
-    if (storedLanguage === 'en' || storedLanguage === 'fr') {
+    if (storedLanguage === 'en' || storedLanguage === 'fr' || storedLanguage === 'ar') {
       setLanguageState(storedLanguage);
     }
   }, []);
@@ -34,7 +34,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   };
 
   const toggleLanguage = () => {
-    const newLang = language === 'en' ? 'fr' : 'en';
+    // Cycle through: fr -> en -> fr (Arabic is set separately via setLanguage)
+    const newLang = language === 'fr' ? 'en' : 'fr';
     setLanguage(newLang);
   };
 

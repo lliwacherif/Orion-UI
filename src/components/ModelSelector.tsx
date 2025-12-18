@@ -2,18 +2,38 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useModel, ModelType } from '../context/ModelContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useConversation } from '../context/ConversationContext';
+import { useAuth } from '../context/AuthContext';
 import { translations } from '../translations';
+
+// Get specialized model name based on user's job title
+const getSpecializedModelName = (jobTitle: string | undefined): string => {
+  switch (jobTitle) {
+    case 'Doctor':
+      return 'Orion - Docto';
+    case 'Engineer':
+      return 'Orion - Archo';
+    case 'Lawyer':
+      return 'Orion - Themis';
+    case 'Accountant':
+    default:
+      return 'Orion - Chrysus';
+  }
+};
 
 const ModelSelector: React.FC = () => {
   const { currentModel, setModel, isAgentMode, setAgentMode, isProMode, setProMode } = useModel();
   const { language } = useLanguage();
   const { createNewConversation, clearCurrentConversation } = useConversation();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Get the specialized model name based on user's job title
+  const specializedModelName = getSpecializedModelName(user?.job_title);
+
   const models = [
     { id: 'chat' as ModelType, name: 'Orion' },
-    { id: 'orion-assist' as ModelType, name: 'Orion - Chrysus' },
+    { id: 'orion-assist' as ModelType, name: specializedModelName },
   ];
 
   const selectedModel = models.find(m => m.id === currentModel) || models[0];

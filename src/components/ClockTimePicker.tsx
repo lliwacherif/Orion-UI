@@ -4,7 +4,7 @@ import { Clock } from 'lucide-react';
 interface ClockTimePickerProps {
   value: string; // Format: "HH:MM AM/PM"
   onChange: (time: string) => void;
-  language: 'en' | 'fr';
+  language: 'en' | 'fr' | 'ar';
 }
 
 const ClockTimePicker: React.FC<ClockTimePickerProps> = ({ value, onChange, language }) => {
@@ -115,7 +115,7 @@ const ClockTimePicker: React.FC<ClockTimePickerProps> = ({ value, onChange, lang
             {/* Title */}
             <div className="text-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                {language === 'en' ? 'Select Time' : 'Sélectionner l\'heure'}
+                {language === 'en' ? 'Select Time' : language === 'ar' ? 'اختر الوقت' : 'Sélectionner l\'heure'}
               </h3>
             </div>
 
@@ -213,8 +213,8 @@ const ClockTimePicker: React.FC<ClockTimePickerProps> = ({ value, onChange, lang
             <div className="text-center mb-4">
               <p className="text-sm font-medium text-purple-700">
                 {mode === 'hour' 
-                  ? (language === 'en' ? '👆 Select hour' : '👆 Sélectionnez l\'heure')
-                  : (language === 'en' ? '👆 Select minute' : '👆 Sélectionnez les minutes')
+                  ? (language === 'en' ? '👆 Select hour' : language === 'ar' ? '👆 اختر الساعة' : '👆 Sélectionnez l\'heure')
+                  : (language === 'en' ? '👆 Select minute' : language === 'ar' ? '👆 اختر الدقيقة' : '👆 Sélectionnez les minutes')
                 }
               </p>
             </div>
@@ -225,7 +225,7 @@ const ClockTimePicker: React.FC<ClockTimePickerProps> = ({ value, onChange, lang
               onClick={() => setIsOpen(false)}
               className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition"
             >
-              {language === 'en' ? 'Close' : 'Fermer'}
+              {language === 'en' ? 'Close' : language === 'ar' ? 'إغلاق' : 'Fermer'}
             </button>
           </div>
         </>
