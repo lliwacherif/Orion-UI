@@ -110,3 +110,4 @@ CREATE TRIGGER trigger_update_admin_timestamp
 -- DROP FUNCTION IF EXISTS update_admin_updated_at();
 -- DROP TABLE IF EXISTS admins;
 
+
