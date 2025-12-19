@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SessionProvider, useSession } from './context/SessionContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { ConversationProvider } from './context/ConversationContext';
 import { ModelProvider } from './context/ModelContext';
+import { AdminProvider, useAdmin } from './context/AdminContext';
 import Auth from './components/Auth';
 import InvitationCode from './components/InvitationCode';
 import JobTitleSelector from './components/JobTitleSelector';
 import ChatWindow from './components/ChatWindow';
+import AdminLogin from './components/AdminLogin';
+import AdminDashboard from './components/AdminDashboard';
 import { AgentTaskService } from './services/agentTaskService';
 import { chat, webSearch } from './api/orcha';
 import type { ChatRequest, WebSearchRequest } from './types/orcha';
@@ -24,7 +28,8 @@ const queryClient = new QueryClient({
   },
 });
 
-const AppContent: React.FC = () => {
+// Main App Content (User facing)
+const MainAppContent: React.FC = () => {
   const { user, isAuthenticated, loading, pendingInvitation, pendingJobTitle } = useAuth();
   const { session, login } = useSession();
   const [agentNotification, setAgentNotification] = useState<AgentNotificationData | null>(null);
@@ -148,23 +153,62 @@ const AppContent: React.FC = () => {
   );
 };
 
+// Admin App Content
+const AdminAppContent: React.FC = () => {
+  const { isAuthenticated, loading } = useAdmin();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/60">Loading admin...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <AdminDashboard /> : <AdminLogin />;
+};
+
+// Main App with User Providers
+const MainApp: React.FC = () => {
+  return (
+    <AuthProvider>
+      <ConversationProvider>
+        <SessionProvider>
+          <ModelProvider>
+            <MainAppContent />
+          </ModelProvider>
+        </SessionProvider>
+      </ConversationProvider>
+    </AuthProvider>
+  );
+};
+
+// Admin App with Admin Provider
+const AdminApp: React.FC = () => {
+  return (
+    <AdminProvider>
+      <AdminAppContent />
+    </AdminProvider>
+  );
+};
+
+// Root App with Routing
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <AuthProvider>
-          <ConversationProvider>
-            <SessionProvider>
-              <ModelProvider>
-                <AppContent />
-              </ModelProvider>
-            </SessionProvider>
-          </ConversationProvider>
-        </AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/admin/*" element={<AdminApp />} />
+            <Route path="/*" element={<MainApp />} />
+          </Routes>
+        </BrowserRouter>
       </LanguageProvider>
     </QueryClientProvider>
   );
 };
 
 export default App;
-

@@ -398,3 +398,333 @@ curl -X POST http://localhost:8000/api/v1/folders/1/1/conversations \
 curl -X DELETE http://localhost:8000/api/v1/folders/1/1
 ```
 
+---
+
+## Part 3: Admin Dashboard API
+
+### Database Setup
+
+Run the migration script located at `migrations/001_create_admin_table.sql` to create the admin table.
+
+**Default credentials:** `admin` / `admin`
+
+### Admin API Endpoints
+
+#### 1. POST `/api/v1/admin/login` - Admin Login
+
+**Request Body:**
+```json
+{
+    "username": "admin",
+    "password": "admin"
+}
+```
+
+**Response:**
+```json
+{
+    "access_token": "eyJhbGciOiJIUzI1...",
+    "token_type": "bearer",
+    "admin": {
+        "id": 1,
+        "username": "admin",
+        "created_at": "2024-01-01T00:00:00Z"
+    }
+}
+```
+
+#### 2. GET `/api/v1/admin/me` - Get Current Admin
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+    "id": 1,
+    "username": "admin",
+    "created_at": "2024-01-01T00:00:00Z"
+}
+```
+
+#### 3. GET `/api/v1/admin/users` - Get All Users with Stats
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+    "users": [
+        {
+            "id": 1,
+            "username": "john_doe",
+            "email": "john@example.com",
+            "full_name": "John Doe",
+            "job_title": "Engineer",
+            "is_active": true,
+            "plan_type": "free",
+            "created_at": "2024-01-15T10:30:00Z",
+            "conversation_count": 15,
+            "message_count": 234,
+            "last_activity": "2024-01-20T15:45:00Z"
+        }
+    ],
+    "stats": {
+        "total_users": 100,
+        "active_users": 85,
+        "total_conversations": 1500,
+        "total_messages": 25000
+    }
+}
+```
+
+#### 4. DELETE `/api/v1/admin/users/{user_id}` - Delete User
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+    "status": "ok",
+    "message": "User deleted successfully"
+}
+```
+
+#### 5. PUT `/api/v1/admin/credentials` - Update Admin Credentials
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+    "current_password": "admin",
+    "new_username": "superadmin",
+    "new_password": "newSecurePassword123"
+}
+```
+
+**Response:**
+```json
+{
+    "status": "ok",
+    "message": "Credentials updated successfully"
+}
+```
+
+### FastAPI Implementation for Admin API
+
+```python
+from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from pydantic import BaseModel
+from passlib.context import CryptContext
+from jose import jwt, JWTError
+from datetime import datetime, timedelta
+from typing import Optional, List
+
+router = APIRouter(prefix="/admin", tags=["admin"])
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
+
+SECRET_KEY = "your-admin-secret-key-change-in-production"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 24
+
+# Pydantic Models
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+class AdminCredentialsUpdate(BaseModel):
+    current_password: str
+    new_username: Optional[str] = None
+    new_password: Optional[str] = None
+
+class UserStats(BaseModel):
+    id: int
+    username: str
+    email: str
+    full_name: Optional[str]
+    job_title: Optional[str]
+    is_active: bool
+    plan_type: str
+    created_at: datetime
+    conversation_count: int
+    message_count: int
+    last_activity: Optional[datetime]
+
+class DashboardStats(BaseModel):
+    total_users: int
+    active_users: int
+    total_conversations: int
+    total_messages: int
+
+# Helper functions
+def create_admin_token(admin_id: int, username: str) -> str:
+    expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
+    payload = {
+        "sub": str(admin_id),
+        "username": username,
+        "exp": expire,
+        "type": "admin"
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+def verify_admin_token(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        admin_id = int(payload.get("sub"))
+        if payload.get("type") != "admin":
+            raise HTTPException(status_code=401, detail="Invalid admin token")
+        admin = db.query(Admin).filter(Admin.id == admin_id).first()
+        if not admin:
+            raise HTTPException(status_code=401, detail="Admin not found")
+        return admin
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+# Endpoints
+@router.post("/login")
+async def admin_login(request: AdminLogin, db: Session = Depends(get_db)):
+    """Admin login endpoint"""
+    admin = db.query(Admin).filter(Admin.username == request.username).first()
+    if not admin or not pwd_context.verify(request.password, admin.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    token = create_admin_token(admin.id, admin.username)
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "admin": {
+            "id": admin.id,
+            "username": admin.username,
+            "created_at": admin.created_at.isoformat()
+        }
+    }
+
+@router.get("/me")
+async def get_current_admin(admin: Admin = Depends(verify_admin_token)):
+    """Get current admin info"""
+    return {
+        "id": admin.id,
+        "username": admin.username,
+        "created_at": admin.created_at.isoformat()
+    }
+
+@router.get("/users")
+async def get_all_users(admin: Admin = Depends(verify_admin_token), db: Session = Depends(get_db)):
+    """Get all users with statistics"""
+    # Query users with conversation and message counts
+    users_query = db.execute("""
+        SELECT * FROM admin_user_stats
+    """).fetchall()
+    
+    users = []
+    for row in users_query:
+        users.append({
+            "id": row.id,
+            "username": row.username,
+            "email": row.email,
+            "full_name": row.full_name,
+            "job_title": row.job_title,
+            "is_active": row.is_active,
+            "plan_type": row.plan_type,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+            "conversation_count": row.conversation_count or 0,
+            "message_count": row.message_count or 0,
+            "last_activity": row.last_activity.isoformat() if row.last_activity else None
+        })
+    
+    # Get overall stats
+    total_users = db.query(func.count(User.id)).filter(User.is_active == True).scalar()
+    total_conversations = db.query(func.count(Conversation.id)).filter(Conversation.is_deleted == False).scalar()
+    total_messages = db.query(func.count(Message.id)).scalar()
+    
+    return {
+        "users": users,
+        "stats": {
+            "total_users": total_users,
+            "active_users": len([u for u in users if u["last_activity"]]),
+            "total_conversations": total_conversations,
+            "total_messages": total_messages
+        }
+    }
+
+@router.delete("/users/{user_id}")
+async def delete_user(user_id: int, admin: Admin = Depends(verify_admin_token), db: Session = Depends(get_db)):
+    """Delete a user account"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Soft delete - just mark as inactive
+    user.is_active = False
+    db.commit()
+    
+    return {"status": "ok", "message": "User deleted successfully"}
+
+@router.put("/credentials")
+async def update_admin_credentials(request: AdminCredentialsUpdate, admin: Admin = Depends(verify_admin_token), db: Session = Depends(get_db)):
+    """Update admin username and/or password"""
+    if not pwd_context.verify(request.current_password, admin.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect current password")
+    
+    if request.new_username:
+        # Check if username is taken
+        existing = db.query(Admin).filter(Admin.username == request.new_username, Admin.id != admin.id).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already taken")
+        admin.username = request.new_username
+    
+    if request.new_password:
+        admin.hashed_password = pwd_context.hash(request.new_password)
+    
+    db.commit()
+    return {"status": "ok", "message": "Credentials updated successfully"}
+```
+
+### Don't forget to:
+
+1. **Run the migration** in `migrations/001_create_admin_table.sql`
+2. **Register the admin router** in your FastAPI app:
+   ```python
+   from routers import admin
+   app.include_router(admin.router, prefix="/api/v1")
+   ```
+3. **Add the Admin model** to your models:
+   ```python
+   class Admin(Base):
+       __tablename__ = "admins"
+       id = Column(Integer, primary_key=True, index=True)
+       username = Column(String(50), unique=True, nullable=False)
+       hashed_password = Column(String(255), nullable=False)
+       is_active = Column(Boolean, default=True)
+       created_at = Column(DateTime(timezone=True), server_default=func.now())
+       updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+   ```
+
+### Testing Admin API
+
+```bash
+# Admin login
+curl -X POST http://localhost:8000/api/v1/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin"}'
+
+# Get all users (use token from login response)
+curl http://localhost:8000/api/v1/admin/users \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+
+# Delete user
+curl -X DELETE http://localhost:8000/api/v1/admin/users/5 \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+
+# Update admin credentials
+curl -X PUT http://localhost:8000/api/v1/admin/credentials \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"current_password": "admin", "new_password": "newSecurePass123"}'
+```
+
