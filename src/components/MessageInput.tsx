@@ -7,6 +7,7 @@ import { useSession } from '../context/SessionContext';
 import { translations } from '../translations';
 import { extractOCRText } from '../api/orcha';
 import AttachmentChip from './AttachmentChip';
+import VoiceModal from './VoiceModal';
 
 interface MessageInputProps {
   onSendMessage: (message: string, attachments: Attachment[], useRag: boolean) => void;
@@ -28,6 +29,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
   const [searchMode, setSearchMode] = useState(false);
   const [agentSearchMode, setAgentSearchMode] = useState(false);
   const [extractedOCRText, setExtractedOCRText] = useState<string>('');
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ocrFileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -530,6 +532,18 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
                 />
               </div>
 
+              <button
+                onClick={() => setShowVoiceModal(true)}
+                disabled={disabled || ocrMutation.isLoading}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-white/40 rounded-full transition-colors"
+                title={language === 'en' ? 'Voice Input' : 'Entrée vocale'}
+                type="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+
               {/* Send button */}
               <button
                 onClick={handleSend}
@@ -789,6 +803,18 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
               />
             </div>
 
+            <button
+              onClick={() => setShowVoiceModal(true)}
+              disabled={disabled || ocrMutation.isLoading}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-white/40 rounded-full transition-colors"
+              title={language === 'en' ? 'Voice Input' : 'Entrée vocale'}
+              type="button"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </button>
+
             {/* Send button */}
             <button
               onClick={handleSend}
@@ -811,6 +837,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage, onScheduleAg
 
         </div>
       )}
+      <VoiceModal
+        isOpen={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+      />
     </>
   );
 };
