@@ -145,10 +145,10 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/5 backdrop-blur-sm">
-            <div className="relative w-full h-full sm:h-auto sm:max-w-2xl bg-white/40 backdrop-blur-2xl sm:rounded-3xl border border-white/50 shadow-2xl flex flex-col items-center p-8 transition-all duration-300">
+            <div className="relative w-full h-full sm:h-auto sm:max-w-2xl bg-white sm:bg-white/40 backdrop-blur-2xl sm:rounded-3xl border border-white/50 shadow-2xl flex flex-col items-center p-8 transition-all duration-300">
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 bg-white/40 rounded-full hover:bg-white/60 transition-colors"
+                    className="absolute top-6 right-6 p-2 bg-white/40 rounded-full hover:bg-white/60 transition-colors z-50"
                 >
                     <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
