@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { transcribeAudio } from '../api/voice';
-import { useBrowserTTS } from '../hooks/useBrowserTTS';
 import CloudyOrb from './CloudyOrb';
 
 interface VoiceModalProps {
@@ -25,14 +24,16 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose }) => {
     const animationFrameRef = useRef<number>();
     const recordingTimeoutRef = useRef<any>(null); // Use any to avoid NodeJS vs Window timeout type conflicts
 
-    const { speak, cancel } = useBrowserTTS();
+    // const { speak, cancel } = useBrowserTTS(); // Removed browser TTS
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // Auto-speak response
+    // Clean up audio URL
     useEffect(() => {
-        if (voiceState === 'speaking' && response) {
-            speak(response, { lang: language === 'fr' ? 'fr-FR' : 'en-US' });
-        }
-    }, [voiceState, response, language, speak]);
+        return () => {
+            if (audioUrl) URL.revokeObjectURL(audioUrl);
+        };
+    }, [audioUrl]);
 
     // Handle open/close lifecycle
     useEffect(() => {
@@ -43,7 +44,10 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose }) => {
             setVoiceState('listening');
             setTranscription('');
             setResponse('');
-            cancel();
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
         }
         return () => {
             stopRecording();
@@ -111,9 +115,29 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose }) => {
         try {
             const result = await transcribeAudio(blob);
             if (result.status === 'success') {
-                setVoiceState('speaking');
                 setTranscription(result.transcription);
                 setResponse(result.response);
+
+                // Generate Speech with OpenAI
+                try {
+                    const { generateSpeech } = await import('../api/voice');
+                    const audioBlob = await generateSpeech(result.response);
+                    const url = URL.createObjectURL(audioBlob);
+                    setAudioUrl(url);
+                    setVoiceState('speaking');
+
+                    if (audioRef.current) {
+                        audioRef.current.src = url;
+                        audioRef.current.play();
+                    }
+                } catch (ttsError) {
+                    console.error("TTS Error:", ttsError);
+                    // Fallback or just show text? 
+                    // For now, if TTS fails, we stay in processing or go to error?
+                    // Let's just stay in 'speaking' state but without audio, or go back to start?
+                    // Actually, if TTS fails, the user sees the text response anyway.
+                }
+
             } else {
                 setVoiceState('error');
             }
@@ -163,8 +187,19 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose }) => {
                 </h2>
 
                 <div className="relative w-full h-[300px] flex items-center justify-center">
-                    <CloudyOrb speed={voiceState === 'speaking' ? 1.5 : volume} />
+                    <CloudyOrb speed={voiceState === 'speaking' ? 1.5 : (voiceState === 'listening' ? volume : 0.5)} />
                 </div>
+
+                {/* Audio Element for Playing Response */}
+                <audio
+                    ref={audioRef}
+                    onEnded={() => {
+                        // Optional: Auto-restart listening or just stop animation
+                        // setVoiceState('listening'); 
+                        // startRecording();
+                    }}
+                    onError={(e) => console.error("Audio Playback Error", e)}
+                />
 
                 <div className="text-center space-y-4 w-full">
                     {transcription && <p className="text-slate-600 italic text-lg">"{transcription}"</p>}
@@ -178,7 +213,13 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose }) => {
                     {(voiceState === 'speaking' || voiceState === 'error' || (voiceState !== 'listening' && voiceState !== 'processing')) && (
                         <div className="pt-4">
                             <button
-                                onClick={() => { cancel(); startRecording(); }}
+                                onClick={() => {
+                                    if (audioRef.current) {
+                                        audioRef.current.pause();
+                                        audioRef.current.currentTime = 0;
+                                    }
+                                    startRecording();
+                                }}
                                 className="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg font-medium transition-all transform hover:scale-105"
                             >
                                 {language === 'en' ? 'Tap to speak again' : 'Appuyez pour parler'}
